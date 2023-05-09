@@ -25,3 +25,23 @@ export const deleteRefreshTokensByUserId = async (
     },
   });
 };
+
+export const findRefreshTokenById = async (
+  id: string
+): Promise<RefreshToken | null> => {
+  return prismaClient.refreshToken.findUnique({
+    where: {
+      id,
+    },
+  });
+};
+
+export const deleteRefreshTokenById = async (
+  id: string
+): Promise<RefreshToken | null> => {
+  return prismaClient.refreshToken.delete({
+    where: {
+      id,
+    },
+  });
+};

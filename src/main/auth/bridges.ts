@@ -1,11 +1,12 @@
 import type { GeneratedTokens } from "main/utils/jwt/interfaces";
 
-import { validateAuthBody } from "main/auth/utils";
+import { validateAuthBody, validateRefreshTokenValue } from "main/auth/utils";
 
 import {
   registerUserService,
   generateAndSaveTokensService,
   loginUserService,
+  refreshUserTokensService,
 } from "main/auth/services";
 
 export const registerUserBridge = async (
@@ -31,4 +32,14 @@ export const loginUserBridge = async (
   const { id: foundUserId } = await loginUserService(username, password);
 
   return generateAndSaveTokensService(foundUserId);
+};
+
+export const refreshUserTokensBridge = async (
+  refreshTokenValue?: unknown
+): Promise<GeneratedTokens> => {
+  const refreshToken = validateRefreshTokenValue(refreshTokenValue);
+
+  const { id: decodedUserId } = await refreshUserTokensService(refreshToken);
+
+  return generateAndSaveTokensService(decodedUserId);
 };

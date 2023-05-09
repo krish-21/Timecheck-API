@@ -1,6 +1,11 @@
-import { genSalt, hash } from "bcrypt";
+import { genSalt, hash, compare } from "bcrypt";
 
-import { hashPassword, hashToken } from "main/utils/jwt/crypto";
+import {
+  hashPassword,
+  hashToken,
+  comparePasswords,
+  compareRefreshTokens,
+} from "main/utils/jwt/crypto";
 
 jest.mock("bcrypt", () => ({
   genSalt: jest.fn(),
@@ -92,6 +97,62 @@ describe("Test hashToken", () => {
     expect(response).toEqual({
       random: "data",
       irrelavant: "info",
+    });
+  });
+});
+
+describe("Test comparePasswords", () => {
+  test("comparePasswords delegates plainTextPassword to compare", async () => {
+    await comparePasswords("potato", "");
+
+    expect(compare).toHaveBeenCalledWith("potato", "");
+  });
+
+  test("comparePasswords delegates storedHash to compare", async () => {
+    await comparePasswords("", "tomato");
+
+    expect(compare).toHaveBeenCalledWith("", "tomato");
+  });
+
+  test("comparePasswords returns response from compare", async () => {
+    (compare as jest.Mock).mockImplementationOnce(() => ({
+      random: "data",
+      irrelavent: "info",
+    }));
+
+    const response = await comparePasswords("", "");
+
+    expect(response).toEqual({
+      random: "data",
+      irrelavent: "info",
+    });
+  });
+});
+
+describe("Test compareRefreshTokens", () => {
+  test("compareRefreshTokens delegates plainTextPassword to compare", async () => {
+    await compareRefreshTokens("potato", "");
+
+    expect(compare).toHaveBeenCalledWith("potato", "");
+  });
+
+  test("compareRefreshTokens delegates storedHash to compare", async () => {
+    await compareRefreshTokens("", "tomato");
+
+    expect(compare).toHaveBeenCalledWith("", "tomato");
+  });
+
+  test("compareRefreshTokens returns response from compare", async () => {
+    (compare as jest.Mock).mockImplementationOnce(() => ({
+      random: "data",
+      irrelavent: "info",
+    }));
+
+    const response = await compareRefreshTokens("", "");
+
+    expect(response).toEqual({
+      random: "data",
+      irrelavent: "info",
     });
   });
 });

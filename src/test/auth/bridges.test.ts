@@ -6,13 +6,19 @@ import {
   registerUserService,
   generateAndSaveTokensService,
   loginUserService,
+  refreshUserTokensService,
 } from "main/auth/services";
 
-import { loginUserBridge, registerUserBridge } from "main/auth/bridges";
+import {
+  loginUserBridge,
+  registerUserBridge,
+  refreshUserTokensBridge,
+} from "main/auth/bridges";
 
 jest.mock("main/auth/services", () => ({
   registerUserService: jest.fn(() => ({})),
   loginUserService: jest.fn(() => ({})),
+  refreshUserTokensService: jest.fn(() => ({})),
   generateAndSaveTokensService: jest.fn(() => ({})),
 }));
 
@@ -199,6 +205,44 @@ describe("Test loginUserBridge", () => {
     );
 
     const response = await loginUserBridge("decentUsername", "ABCdefGHI123#");
+
+    expect(response).toEqual(mockTokenResonse);
+  });
+});
+
+describe("Test refreshUserTokensBridge", () => {
+  test("refreshUserTokensBridge throws error if refreshToken is undefined", async () => {
+    await expect(refreshUserTokensBridge()).rejects.toThrow(
+      new InvalidDataError("Refresh Token")
+    );
+  });
+
+  test("refreshUserTokensBridge delegates receivedRefreshToken to refreshUserTokensService", async () => {
+    await refreshUserTokensBridge("potato");
+
+    expect(refreshUserTokensService).toHaveBeenCalledWith("potato");
+  });
+
+  test("refreshUserTokensBridge delegates decodedUserId to generateAndSaveTokensService", async () => {
+    (refreshUserTokensService as jest.Mock).mockImplementation(() => ({
+      id: "potato",
+    }));
+
+    await refreshUserTokensBridge("");
+
+    expect(generateAndSaveTokensService).toHaveBeenCalledWith("potato");
+  });
+
+  test("refreshUserTokensBridge returns response from generateAndSaveTokensService", async () => {
+    const mockTokenResonse = {
+      random: "potato",
+      data: "tomato",
+    };
+    (generateAndSaveTokensService as jest.Mock).mockImplementationOnce(
+      () => mockTokenResonse
+    );
+
+    const response = await refreshUserTokensBridge("");
 
     expect(response).toEqual(mockTokenResonse);
   });

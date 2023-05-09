@@ -3,11 +3,16 @@ import { StatusCodes } from "http-status-codes";
 
 import { app } from "main/app";
 
-import { registerUserBridge, loginUserBridge } from "main/auth/bridges";
+import {
+  registerUserBridge,
+  loginUserBridge,
+  refreshUserTokensBridge,
+} from "main/auth/bridges";
 
 jest.mock("main/auth/bridges", () => ({
   registerUserBridge: jest.fn(),
   loginUserBridge: jest.fn(),
+  refreshUserTokensBridge: jest.fn(),
 }));
 
 afterEach(() => {
@@ -74,6 +79,34 @@ describe("Test loginUserView", () => {
     }));
 
     const response = await request(app).post("/auth/login");
+
+    expect(response.body).toEqual({
+      accessToken: "apple",
+      refreshToken: "banana",
+    });
+  });
+});
+
+describe("Test refreshUserTokensView", () => {
+  test("refreshUserTokensView delegates refreshToken to refreshUserTokensBridge", async () => {
+    await request(app).post("/auth/refresh").send({ refreshToken: "potato" });
+
+    expect(refreshUserTokensBridge).toHaveBeenCalledWith("potato");
+  });
+
+  test("refreshUserTokensView returnss 201 CREATED status code", async () => {
+    const response = await request(app).post("/auth/refresh");
+
+    expect(response.status).toEqual(StatusCodes.CREATED);
+  });
+
+  test("refreshUserTokensView returns tokens returned from refreshUserTokensBridge", async () => {
+    (refreshUserTokensBridge as jest.Mock).mockImplementationOnce(() => ({
+      accessToken: "apple",
+      refreshToken: "banana",
+    }));
+
+    const response = await request(app).post("/auth/refresh");
 
     expect(response.body).toEqual({
       accessToken: "apple",

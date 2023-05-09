@@ -4,6 +4,8 @@ import { prismaClient } from "main/utils/db/prismaClient";
 import {
   createRefreshToken,
   deleteRefreshTokensByUserId,
+  findRefreshTokenById,
+  deleteRefreshTokenById,
 } from "main/auth/dbServices";
 
 const userId = uuidV4();
@@ -83,5 +85,53 @@ describe("Test deleteRefreshTokensByUserId", () => {
     });
 
     expect(deletedRefreshTokens).toEqual([]);
+  });
+});
+
+describe("Test findRefreshTokenById", () => {
+  test("findRefreshTokenById returns null if refreshToken with passed id does not exist", async () => {
+    const retreivedRefreshToken = await findRefreshTokenById(uuidV4());
+
+    expect(retreivedRefreshToken).toBeNull();
+  });
+
+  test("findRefreshTokenById finds refreshToken with passed id", async () => {
+    const tokenUUID = uuidV4();
+    await prismaClient.refreshToken.create({
+      data: {
+        id: tokenUUID,
+        hashedToken: "tomato",
+        userId,
+      },
+    });
+
+    const retreivedRefreshToken = await findRefreshTokenById(tokenUUID);
+
+    expect(retreivedRefreshToken).not.toBeNull();
+    expect(retreivedRefreshToken).toHaveProperty("id", tokenUUID);
+    expect(retreivedRefreshToken).toHaveProperty("hashedToken", "tomato");
+    expect(retreivedRefreshToken).toHaveProperty("userId", userId);
+  });
+});
+
+describe("Test deleteRefreshTokenById", () => {
+  test("deleteRefreshTokenById deletes refreshToken with passed id", async () => {
+    const tokenUUID = uuidV4();
+    await prismaClient.refreshToken.create({
+      data: {
+        id: tokenUUID,
+        hashedToken: "onion",
+        isRevoked: true,
+        userId,
+      },
+    });
+
+    await deleteRefreshTokenById(tokenUUID);
+
+    const deletedRefreshToken = await prismaClient.refreshToken.findUnique({
+      where: { id: tokenUUID },
+    });
+
+    expect(deletedRefreshToken).toBeNull();
   });
 });

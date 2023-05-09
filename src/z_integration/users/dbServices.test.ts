@@ -4,12 +4,15 @@ import { prismaClient } from "main/utils/db/prismaClient";
 import {
   findUserByUsername,
   createUserByUsernameAndPassword,
+  findUserById,
 } from "main/users/dbServices";
 
-const firstUserId = uuidV4();
+const firstUserId = uuidV4(),
+  thirdUserId = uuidV4();
 
 const firstUsername = uuidV4(),
-  secondUsername = uuidV4();
+  secondUsername = uuidV4(),
+  thirdUsername = uuidV4();
 
 afterAll(async () => {
   const deleteUsers_1 = prismaClient.user.delete({
@@ -56,6 +59,25 @@ describe("Test createUserByUsernameAndPassword", () => {
 
     expect(foundUser).toHaveProperty("username", secondUsername);
     expect(foundUser).toHaveProperty("password", "potatotomato");
+    expect(foundUser).toHaveProperty("role", "USER");
+  });
+});
+
+describe("Test findUserById", () => {
+  test("findUserById finds user by passed id", async () => {
+    await prismaClient.user.create({
+      data: {
+        id: thirdUserId,
+        username: thirdUsername,
+        password: "tomatopotato",
+      },
+    });
+
+    const foundUser = await findUserById(thirdUserId);
+
+    expect(foundUser).toHaveProperty("id", thirdUserId);
+    expect(foundUser).toHaveProperty("username", thirdUsername);
+    expect(foundUser).toHaveProperty("password", "tomatopotato");
     expect(foundUser).toHaveProperty("role", "USER");
   });
 });
