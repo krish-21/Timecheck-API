@@ -41,3 +41,13 @@ export const verifyRefreshToken = (
     return null;
   }
 };
+
+export const verifyAccessToken = (
+  receivedJWT: string
+): CustomJWTPayload | null => {
+  try {
+    return verify(receivedJWT, appConfig.jwtAccessSecret) as CustomJWTPayload;
+  } catch (err) {
+    return null;
+  }
+};
