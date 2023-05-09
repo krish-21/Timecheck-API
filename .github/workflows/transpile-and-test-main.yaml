@@ -1,0 +1,58 @@
+name: Transpile & Test Main Branch
+
+run-name: "Main Branch CI"
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  Transpile-and-Test:
+    runs-on: ubuntu-22.04
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: timecheck
+          POSTGRES_PASSWORD: timecheck
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Start Action
+        run: echo "Starting Action"
+
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Use Node 18.12.1
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.12.1"
+
+      - name: Install All Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run generate
+
+      - name: Transpile TS
+        run: npm run build
+
+      - name: Create .env file
+        run: cp .env.sample .env
+
+      - name: Run Prisma Migrations
+        run: npm run migrateProd
+        env:
+          DATABASE_URL: postgresql://timecheck:timecheck@localhost:5432/timecheck
+
+      - name: Run Tests
+        run: npm test -- --ci -b
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://timecheck:timecheck@localhost:5432/timecheck
+          JWT_ACCESS_SECRET: notsosecret
+          JWT_REFRESH_SECRET: NotSoSecret
