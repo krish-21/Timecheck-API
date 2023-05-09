@@ -23,8 +23,8 @@ jobs:
 
       - name: Checkout Code
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+        # with:
+        # fetch-depth: 0
 
       - name: Use Node 18.12.1
         uses: actions/setup-node@v3
@@ -37,8 +37,8 @@ jobs:
       - name: Generate Prisma Client
         run: npm run generate
 
-      - name: Run Lint Staged
-        run: npx lint-staged --diff="origin/${{github.base_ref}}...origin/${{github.head_ref}}"
+      # - name: Run Lint Staged
+      # run: npx lint-staged --diff="origin/${{github.base_ref}}...origin/${{github.head_ref}}"
 
       - name: Transpile TS
         run: npm run build

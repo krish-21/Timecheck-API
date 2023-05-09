@@ -1,0 +1,18 @@
+import { genSalt, hash } from "bcrypt";
+
+import {
+  PASSWORD_SALT_ROUNDS,
+  REFRSH_TOKEN_SALT_ROUNDS,
+} from "main/utils/constants/jwt";
+
+export const hashPassword = async (
+  plainTextPassword: string
+): Promise<string> => {
+  const salt = await genSalt(PASSWORD_SALT_ROUNDS);
+  return hash(plainTextPassword, salt);
+};
+
+export const hashToken = async (token: string): Promise<string> => {
+  const salt = await genSalt(REFRSH_TOKEN_SALT_ROUNDS);
+  return hash(token, salt);
+};

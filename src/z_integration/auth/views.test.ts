@@ -1,0 +1,48 @@
+import request from "supertest";
+import { StatusCodes } from "http-status-codes";
+
+import { app } from "main/app";
+
+import { registerUserBridge } from "main/auth/bridges";
+
+jest.mock("main/auth/bridges", () => ({
+  registerUserBridge: jest.fn(),
+}));
+
+afterEach(() => {
+  jest.clearAllMocks();
+});
+
+describe("Test registerUserView", () => {
+  test("registerUserView delegates username to registerUserBridge", async () => {
+    await request(app).post("/auth/register").send({ username: "potato" });
+
+    expect(registerUserBridge).toHaveBeenCalledWith("potato", undefined);
+  });
+
+  test("registerUserView delegates password to registerUserBridge", async () => {
+    await request(app).post("/auth/register").send({ password: "tomato" });
+
+    expect(registerUserBridge).toHaveBeenCalledWith(undefined, "tomato");
+  });
+
+  test("registerUserView returnss 201 CREATED status code", async () => {
+    const response = await request(app).post("/auth/register");
+
+    expect(response.status).toEqual(StatusCodes.CREATED);
+  });
+
+  test("registerUserView returns tokens returned from registerUserBridge", async () => {
+    (registerUserBridge as jest.Mock).mockImplementationOnce(() => ({
+      accessToken: "apple",
+      refreshToken: "banana",
+    }));
+
+    const response = await request(app).post("/auth/register");
+
+    expect(response.body).toEqual({
+      accessToken: "apple",
+      refreshToken: "banana",
+    });
+  });
+});

@@ -3,6 +3,8 @@ import express from "express";
 
 import { appConfig } from "main/utils/environment/AppConfig";
 
+import { authRouter } from "main/auth/routes";
+
 export const app = express();
 
 //
@@ -12,11 +14,16 @@ export const app = express();
 //
 
 // Logging
-app.use(morgan("short", { skip: (_req, _res) => appConfig.env === "test" }));
+app.use(morgan("short", { skip: () => appConfig.env === "test" }));
 
 // Body Parsers
 app.use(express.json());
 
-app.get("/", (_req, res) => {
-  res.send("Hello World!");
-});
+//
+//
+// Routes
+//
+//
+
+// Auth
+app.use("/auth", authRouter);
