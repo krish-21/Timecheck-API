@@ -7,10 +7,7 @@ class AppConfig {
   public port: number;
 
   constructor(env: NodeJS.ProcessEnv) {
-    if (
-      env["NODE_ENV"] === undefined ||
-      env["PORT"] === undefined
-    ) {
+    if (env["NODE_ENV"] === undefined || env["PORT"] === undefined) {
       throw new Error("Environmental Variables Error");
     }
 
