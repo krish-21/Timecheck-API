@@ -1,4 +1,4 @@
-import { RefreshToken } from "@prisma/client";
+import type { RefreshToken } from "@prisma/client";
 
 import { prismaClient } from "main/utils/db/prismaClient";
 
@@ -11,6 +11,16 @@ export const createRefreshToken = async (
     data: {
       id: tokenUUID,
       hashedToken: hashedRefreshToken,
+      userId,
+    },
+  });
+};
+
+export const deleteRefreshTokensByUserId = async (
+  userId: string
+): Promise<{ count: number }> => {
+  return prismaClient.refreshToken.deleteMany({
+    where: {
       userId,
     },
   });

@@ -1,18 +1,27 @@
 import { v4 as uuidV4 } from "uuid";
 
+import { InvalidDataError } from "main/utils/errors/InvalidDataError/InvalidDataError";
 import { AlreadyExistsError } from "main/utils/errors/AlreadyExistsError/AlreadyExistsError";
 
+import {
+  createRefreshToken,
+  deleteRefreshTokensByUserId,
+} from "main/auth/dbServices";
 import {
   findUserByUsername,
   createUserByUsernameAndPassword,
 } from "main/users/dbServices";
-import { createRefreshToken } from "main/auth/dbServices";
 
 import { generateTokens } from "main/utils/jwt/tokens";
-import { hashPassword, hashToken } from "main/utils/jwt/crypto";
+import {
+  comparePasswords,
+  hashPassword,
+  hashToken,
+} from "main/utils/jwt/crypto";
 
 import {
   registerUserService,
+  loginUserService,
   generateAndSaveTokensService,
 } from "main/auth/services";
 
@@ -28,6 +37,7 @@ jest.mock("main/users/dbServices", () => ({
 jest.mock("main/utils/jwt/crypto", () => ({
   hashPassword: jest.fn(),
   hashToken: jest.fn(),
+  comparePasswords: jest.fn(() => true),
 }));
 
 jest.mock("main/utils/jwt/tokens", () => ({
@@ -36,6 +46,7 @@ jest.mock("main/utils/jwt/tokens", () => ({
 
 jest.mock("main/auth/dbServices", () => ({
   createRefreshToken: jest.fn(),
+  deleteRefreshTokensByUserId: jest.fn(() => ({})),
 }));
 
 afterEach(() => {
@@ -91,6 +102,73 @@ describe("Test registerUserService", () => {
     const response = await registerUserService("", "");
 
     expect(response).toEqual({ id: "potato", username: "tomato" });
+  });
+});
+
+describe("Test loginUserService", () => {
+  test("loginUserService delegates username to findUserByUsername", async () => {
+    (findUserByUsername as jest.Mock).mockImplementationOnce(() => ({}));
+
+    await loginUserService("potato", "");
+
+    expect(findUserByUsername).toHaveBeenCalledWith("potato");
+  });
+
+  test("loginUserService throws error if user does not exists", async () => {
+    await expect(loginUserService("", "")).rejects.toThrow(
+      new InvalidDataError("Credentials")
+    );
+  });
+
+  test("loginUserService delegates password to comparePassword", async () => {
+    (findUserByUsername as jest.Mock).mockImplementationOnce(() => ({}));
+
+    await loginUserService("", "tomato");
+
+    expect(comparePasswords).toHaveBeenCalledWith("tomato", undefined);
+  });
+
+  test("loginUserService delegates foundUser's hashPassword to comparePassword", async () => {
+    (findUserByUsername as jest.Mock).mockImplementationOnce(() => ({
+      password: "tomato",
+    }));
+
+    await loginUserService("", "");
+
+    expect(comparePasswords).toHaveBeenCalledWith("", "tomato");
+  });
+
+  test("loginUserService throws Error if password hashes don't match", async () => {
+    (findUserByUsername as jest.Mock).mockImplementationOnce(() => ({}));
+    (comparePasswords as jest.Mock).mockImplementationOnce(() => false);
+
+    await expect(loginUserService("", "")).rejects.toThrow(
+      new InvalidDataError("Credentials")
+    );
+  });
+
+  test("loginUserService delegates foundUser's id to deleteRefreshTokensByUserId", async () => {
+    (findUserByUsername as jest.Mock).mockImplementationOnce(() => ({
+      id: "tomato",
+    }));
+
+    await loginUserService("", "");
+
+    expect(deleteRefreshTokensByUserId).toHaveBeenCalledWith("tomato");
+  });
+
+  test("loginUserService returns findUserByUsername response", async () => {
+    const mockUserResonse = {
+      id: "potato",
+      username: "tomato",
+    };
+    (findUserByUsername as jest.Mock).mockImplementationOnce(
+      () => mockUserResonse
+    );
+
+    const response = await loginUserService("", "");
+
+    expect(response).toEqual(mockUserResonse);
   });
 });
 
