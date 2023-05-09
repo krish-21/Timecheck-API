@@ -7,6 +7,7 @@ import {
   generateRefreshToken,
   generateTokens,
   verifyRefreshToken,
+  verifyAccessToken,
 } from "main/utils/jwt/tokens";
 
 jest.mock("jsonwebtoken", () => ({
@@ -182,6 +183,47 @@ describe("Test verifyRefreshToken", () => {
     });
 
     const response = verifyRefreshToken("potato");
+
+    expect(response).toBeNull();
+  });
+});
+
+describe("Test verifyAccessToken", () => {
+  test("verifyAccessToken delegates receivedJWT to verify", () => {
+    verifyAccessToken("potato");
+
+    expect(verify).toHaveBeenCalledWith("potato", expect.any(String));
+  });
+
+  test("verifyAccessToken delegates jwtAccessSecret to verify", () => {
+    verifyAccessToken("potato");
+
+    expect(verify).toHaveBeenCalledWith(
+      expect.any(String),
+      appConfig.jwtAccessSecret
+    );
+  });
+
+  test("verifyAccessToken returns response from verify", () => {
+    (verify as jest.Mock).mockImplementationOnce(() => ({
+      random: "data",
+      irrelavant: "info",
+    }));
+
+    const response = verifyAccessToken("potato");
+
+    expect(response).toEqual({
+      random: "data",
+      irrelavant: "info",
+    });
+  });
+
+  test("verifyAccessToken returns null if verify throws error", () => {
+    (verify as jest.Mock).mockImplementationOnce(() => {
+      throw new Error();
+    });
+
+    const response = verifyAccessToken("potato");
 
     expect(response).toBeNull();
   });

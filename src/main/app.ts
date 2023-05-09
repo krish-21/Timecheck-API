@@ -3,6 +3,8 @@ import express from "express";
 
 import { appConfig } from "main/utils/environment/AppConfig";
 
+import { isAuthenticated } from "main/middleware/isAuthenticated";
+
 import { authRouter } from "main/auth/routes";
 
 export const app = express();
@@ -27,3 +29,6 @@ app.use(express.json());
 
 // Auth
 app.use("/auth", authRouter);
+
+// Auth Wall
+app.use(isAuthenticated);
