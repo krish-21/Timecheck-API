@@ -23,3 +23,10 @@ export const comparePasswords = async (
 ): Promise<boolean> => {
   return compare(plainTextPassword, storedHash);
 };
+
+export const compareRefreshTokens = async (
+  plainTextRefreshTokens: string,
+  storedHash: string
+): Promise<boolean> => {
+  return compare(plainTextRefreshTokens, storedHash);
+};

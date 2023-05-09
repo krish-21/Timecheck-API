@@ -5,16 +5,20 @@ import { AlreadyExistsError } from "main/utils/errors/AlreadyExistsError/Already
 
 import {
   createRefreshToken,
+  deleteRefreshTokenById,
   deleteRefreshTokensByUserId,
+  findRefreshTokenById,
 } from "main/auth/dbServices";
 import {
   findUserByUsername,
   createUserByUsernameAndPassword,
+  findUserById,
 } from "main/users/dbServices";
 
-import { generateTokens } from "main/utils/jwt/tokens";
+import { generateTokens, verifyRefreshToken } from "main/utils/jwt/tokens";
 import {
   comparePasswords,
+  compareRefreshTokens,
   hashPassword,
   hashToken,
 } from "main/utils/jwt/crypto";
@@ -23,7 +27,9 @@ import {
   registerUserService,
   loginUserService,
   generateAndSaveTokensService,
+  refreshUserTokensService,
 } from "main/auth/services";
+import { UnauthorizedError } from "main/utils/errors/UnauthorizedError/UnauthorizedError";
 
 jest.mock("uuid", () => ({
   v4: jest.fn(),
@@ -32,21 +38,26 @@ jest.mock("uuid", () => ({
 jest.mock("main/users/dbServices", () => ({
   findUserByUsername: jest.fn(() => null),
   createUserByUsernameAndPassword: jest.fn(() => ({ id: "" })),
+  findUserById: jest.fn(),
 }));
 
 jest.mock("main/utils/jwt/crypto", () => ({
   hashPassword: jest.fn(),
   hashToken: jest.fn(),
   comparePasswords: jest.fn(() => true),
+  compareRefreshTokens: jest.fn(() => true),
 }));
 
 jest.mock("main/utils/jwt/tokens", () => ({
   generateTokens: jest.fn(() => ({})),
+  verifyRefreshToken: jest.fn(() => ({})),
 }));
 
 jest.mock("main/auth/dbServices", () => ({
   createRefreshToken: jest.fn(),
   deleteRefreshTokensByUserId: jest.fn(() => ({})),
+  findRefreshTokenById: jest.fn(() => ({})),
+  deleteRefreshTokenById: jest.fn(),
 }));
 
 afterEach(() => {
@@ -245,5 +256,113 @@ describe("Test generateAndSaveTokensService", () => {
     const response = await generateAndSaveTokensService("potato");
 
     expect(response).toEqual(mockTokenResonse);
+  });
+});
+
+describe("Test refreshUserTokensService", () => {
+  test("refreshUserTokensService delegates receivedRefreshToken to verifyRefreshToken", async () => {
+    await refreshUserTokensService("potato");
+
+    expect(verifyRefreshToken).toHaveBeenCalledWith("potato");
+  });
+
+  test("refreshUserTokensService throws error if decoded payload is null", async () => {
+    (verifyRefreshToken as jest.Mock).mockImplementationOnce(() => null);
+
+    await expect(refreshUserTokensService("")).rejects.toThrow(
+      new UnauthorizedError()
+    );
+  });
+
+  test("refreshUserTokensService delegates decodedPayload.tokenUUID to findRefreshTokenById", async () => {
+    (verifyRefreshToken as jest.Mock).mockImplementationOnce(() => ({
+      tokenUUID: "tomato",
+    }));
+
+    await refreshUserTokensService("");
+
+    expect(findRefreshTokenById).toHaveBeenCalledWith("tomato");
+  });
+
+  test("refreshUserTokensService throws error if savedRefreshToken is null", async () => {
+    (findRefreshTokenById as jest.Mock).mockImplementationOnce(() => null);
+
+    await expect(refreshUserTokensService("")).rejects.toThrow(
+      new UnauthorizedError("Null Token")
+    );
+  });
+
+  test("refreshUserTokensService throws error if savedRefreshToken is revoked", async () => {
+    (findRefreshTokenById as jest.Mock).mockImplementationOnce(() => ({
+      isRevoked: true,
+    }));
+
+    await expect(refreshUserTokensService("")).rejects.toThrow(
+      new UnauthorizedError("Revoked Token")
+    );
+  });
+
+  test("refreshUserTokensService delegates receivedRefreshToken to compareRefreshTokens", async () => {
+    await refreshUserTokensService("potato");
+
+    expect(compareRefreshTokens).toHaveBeenCalledWith("potato", undefined);
+  });
+
+  test("refreshUserTokensService delegates savedHashToken to compareRefreshTokens", async () => {
+    (findRefreshTokenById as jest.Mock).mockImplementationOnce(() => ({
+      hashedToken: "tomato",
+    }));
+
+    await refreshUserTokensService("");
+
+    expect(compareRefreshTokens).toHaveBeenCalledWith("", "tomato");
+  });
+
+  test("refreshUserTokensService throws error if refreshToken hashes are not matching", async () => {
+    (compareRefreshTokens as jest.Mock).mockImplementationOnce(() => false);
+
+    await expect(refreshUserTokensService("")).rejects.toThrow(
+      new UnauthorizedError("Invalid Token")
+    );
+  });
+
+  test("refreshUserTokensService delegates decodedPayload.userId to findUserById", async () => {
+    (verifyRefreshToken as jest.Mock).mockImplementationOnce(() => ({
+      userId: "potato",
+    }));
+
+    await refreshUserTokensService("");
+
+    expect(findUserById).toHaveBeenCalledWith("potato");
+  });
+
+  test("refreshUserTokensService throws error if decodedUser is null", async () => {
+    (findUserById as jest.Mock).mockImplementationOnce(() => null);
+
+    await expect(refreshUserTokensService("")).rejects.toThrow(
+      new UnauthorizedError("Invalid Payload")
+    );
+  });
+
+  test("refreshUserTokensService delegates savedRefreshToken.id to deleteRefreshTokenById", async () => {
+    (findRefreshTokenById as jest.Mock).mockImplementationOnce(() => ({
+      id: "tomato",
+    }));
+
+    await refreshUserTokensService("");
+
+    expect(deleteRefreshTokenById).toHaveBeenCalledWith("tomato");
+  });
+
+  test("refreshUserTokensService returns decodedUser", async () => {
+    const mockUserResonse = {
+      id: "potato",
+      username: "tomato",
+    };
+    (findUserById as jest.Mock).mockImplementationOnce(() => mockUserResonse);
+
+    const response = await refreshUserTokensService("");
+
+    expect(response).toEqual(mockUserResonse);
   });
 });

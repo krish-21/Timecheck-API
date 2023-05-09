@@ -5,20 +5,25 @@ import type { GeneratedTokens } from "main/utils/jwt/interfaces";
 
 import { InvalidDataError } from "main/utils/errors/InvalidDataError/InvalidDataError";
 import { AlreadyExistsError } from "main/utils/errors/AlreadyExistsError/AlreadyExistsError";
+import { UnauthorizedError } from "main/utils/errors/UnauthorizedError/UnauthorizedError";
 
-import { generateTokens } from "main/utils/jwt/tokens";
+import { generateTokens, verifyRefreshToken } from "main/utils/jwt/tokens";
 import {
   createRefreshToken,
+  findRefreshTokenById,
   deleteRefreshTokensByUserId,
+  deleteRefreshTokenById,
 } from "main/auth/dbServices";
 import {
   comparePasswords,
+  compareRefreshTokens,
   hashPassword,
   hashToken,
 } from "main/utils/jwt/crypto";
 import {
   findUserByUsername,
   createUserByUsernameAndPassword,
+  findUserById,
 } from "main/users/dbServices";
 
 export const registerUserService = async (
@@ -63,6 +68,47 @@ export const loginUserService = async (
   await deleteRefreshTokensByUserId(foundUser.id);
 
   return foundUser;
+};
+
+export const refreshUserTokensService = async (
+  receivedRefreshToken: string
+): Promise<User> => {
+  const decodedPayload = verifyRefreshToken(receivedRefreshToken);
+
+  if (decodedPayload === null) {
+    throw new UnauthorizedError();
+  }
+
+  const savedRefreshToken = await findRefreshTokenById(
+    decodedPayload.tokenUUID
+  );
+
+  if (savedRefreshToken === null) {
+    throw new UnauthorizedError("Null Token");
+  }
+
+  if (savedRefreshToken.isRevoked) {
+    throw new UnauthorizedError("Revoked Token");
+  }
+
+  const isRefreshTokenMatching = await compareRefreshTokens(
+    receivedRefreshToken,
+    savedRefreshToken.hashedToken
+  );
+
+  if (!isRefreshTokenMatching) {
+    throw new UnauthorizedError("Invalid Token");
+  }
+
+  const decodedUser = await findUserById(decodedPayload.userId);
+
+  if (decodedUser === null) {
+    throw new UnauthorizedError("Invalid Payload");
+  }
+
+  await deleteRefreshTokenById(savedRefreshToken.id);
+
+  return decodedUser;
 };
 
 export const generateAndSaveTokensService = async (

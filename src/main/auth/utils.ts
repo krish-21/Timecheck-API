@@ -39,3 +39,12 @@ export const validateAuthBody = (
     password: passwordValue,
   };
 };
+
+export const validateRefreshTokenValue = (
+  refreshTokenValue: unknown
+): string => {
+  if (typeof refreshTokenValue !== "string") {
+    throw new InvalidDataError("Refresh Token");
+  }
+  return refreshTokenValue;
+};

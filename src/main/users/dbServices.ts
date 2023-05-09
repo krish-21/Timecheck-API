@@ -1,4 +1,4 @@
-import { User } from "@prisma/client";
+import type { User } from "@prisma/client";
 
 import { prismaClient } from "main/utils/db/prismaClient";
 
@@ -20,6 +20,14 @@ export const createUserByUsernameAndPassword = async (
     data: {
       username,
       password: hashedPassword,
+    },
+  });
+};
+
+export const findUserById = async (id: string): Promise<User | null> => {
+  return prismaClient.user.findUnique({
+    where: {
+      id,
     },
   });
 };

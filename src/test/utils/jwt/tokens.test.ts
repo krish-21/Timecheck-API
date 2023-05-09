@@ -1,4 +1,4 @@
-import { sign } from "jsonwebtoken";
+import { sign, verify } from "jsonwebtoken";
 
 import { appConfig } from "main/utils/environment/AppConfig";
 
@@ -6,6 +6,7 @@ import {
   generateAccessToken,
   generateRefreshToken,
   generateTokens,
+  verifyRefreshToken,
 } from "main/utils/jwt/tokens";
 
 jest.mock("jsonwebtoken", () => ({
@@ -142,5 +143,46 @@ describe("Test generateTokens", () => {
       data: "random",
       info: "irrelavant",
     });
+  });
+});
+
+describe("Test verifyRefreshToken", () => {
+  test("verifyRefreshToken delegates receivedJWT to verify", () => {
+    verifyRefreshToken("potato");
+
+    expect(verify).toHaveBeenCalledWith("potato", expect.any(String));
+  });
+
+  test("verifyRefreshToken delegates jwtRefreshSecret to verify", () => {
+    verifyRefreshToken("potato");
+
+    expect(verify).toHaveBeenCalledWith(
+      expect.any(String),
+      appConfig.jwtRefreshSecret
+    );
+  });
+
+  test("verifyRefreshToken returns response from verify", () => {
+    (verify as jest.Mock).mockImplementationOnce(() => ({
+      random: "data",
+      irrelavant: "info",
+    }));
+
+    const response = verifyRefreshToken("potato");
+
+    expect(response).toEqual({
+      random: "data",
+      irrelavant: "info",
+    });
+  });
+
+  test("verifyRefreshToken returns null if verify throws error", () => {
+    (verify as jest.Mock).mockImplementationOnce(() => {
+      throw new Error();
+    });
+
+    const response = verifyRefreshToken("potato");
+
+    expect(response).toBeNull();
   });
 });
