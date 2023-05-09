@@ -127,3 +127,15 @@ export const generateAndSaveTokensService = async (
     refreshToken,
   };
 };
+
+export const logoutUserService = async (userId: string): Promise<string> => {
+  const { count: numberOfTOkensRevoked } = await deleteRefreshTokensByUserId(
+    userId
+  );
+
+  if (numberOfTOkensRevoked === 0) {
+    throw new UnauthorizedError("No Tokens");
+  }
+
+  return userId;
+};

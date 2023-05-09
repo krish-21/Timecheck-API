@@ -1,6 +1,7 @@
 import { v4 as uuidV4 } from "uuid";
 
 import { InvalidDataError } from "main/utils/errors/InvalidDataError/InvalidDataError";
+import { UnauthorizedError } from "main/utils/errors/UnauthorizedError/UnauthorizedError";
 import { AlreadyExistsError } from "main/utils/errors/AlreadyExistsError/AlreadyExistsError";
 
 import {
@@ -28,8 +29,8 @@ import {
   loginUserService,
   generateAndSaveTokensService,
   refreshUserTokensService,
+  logoutUserService,
 } from "main/auth/services";
-import { UnauthorizedError } from "main/utils/errors/UnauthorizedError/UnauthorizedError";
 
 jest.mock("uuid", () => ({
   v4: jest.fn(),
@@ -364,5 +365,29 @@ describe("Test refreshUserTokensService", () => {
     const response = await refreshUserTokensService("");
 
     expect(response).toEqual(mockUserResonse);
+  });
+});
+
+describe("Test logoutUserService", () => {
+  test("logoutUserService delegates userId to deleteRefreshTokensByUserId", async () => {
+    await logoutUserService("potato");
+
+    expect(deleteRefreshTokensByUserId).toHaveBeenCalledWith("potato");
+  });
+
+  test("logoutUserService throws error if no tokens to revoke", async () => {
+    (deleteRefreshTokensByUserId as jest.Mock).mockImplementationOnce(() => ({
+      count: 0,
+    }));
+
+    await expect(logoutUserService("")).rejects.toThrow(
+      new UnauthorizedError("No Tokens")
+    );
+  });
+
+  test("logoutUserService returns passed userId", async () => {
+    const response = await logoutUserService("tomato");
+
+    expect(response).toEqual("tomato");
   });
 });

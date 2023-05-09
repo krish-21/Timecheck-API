@@ -4,9 +4,10 @@ import { validateAuthBody, validateRefreshTokenValue } from "main/auth/utils";
 
 import {
   registerUserService,
-  generateAndSaveTokensService,
   loginUserService,
   refreshUserTokensService,
+  generateAndSaveTokensService,
+  logoutUserService,
 } from "main/auth/services";
 
 export const registerUserBridge = async (
@@ -42,4 +43,8 @@ export const refreshUserTokensBridge = async (
   const { id: decodedUserId } = await refreshUserTokensService(refreshToken);
 
   return generateAndSaveTokensService(decodedUserId);
+};
+
+export const logoutUserBridge = async (userId: string): Promise<string> => {
+  return logoutUserService(userId);
 };

@@ -6,3 +6,7 @@ export interface AuthRequestBody {
 export interface RefreshRequestBody {
   refreshToken: unknown;
 }
+
+export interface LogoutUserResponse {
+  message: string;
+}
