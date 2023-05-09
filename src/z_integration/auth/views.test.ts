@@ -3,10 +3,11 @@ import { StatusCodes } from "http-status-codes";
 
 import { app } from "main/app";
 
-import { registerUserBridge } from "main/auth/bridges";
+import { registerUserBridge, loginUserBridge } from "main/auth/bridges";
 
 jest.mock("main/auth/bridges", () => ({
   registerUserBridge: jest.fn(),
+  loginUserBridge: jest.fn(),
 }));
 
 afterEach(() => {
@@ -26,7 +27,7 @@ describe("Test registerUserView", () => {
     expect(registerUserBridge).toHaveBeenCalledWith(undefined, "tomato");
   });
 
-  test("registerUserView returnss 201 CREATED status code", async () => {
+  test("registerUserView returns 201 CREATED status code", async () => {
     const response = await request(app).post("/auth/register");
 
     expect(response.status).toEqual(StatusCodes.CREATED);
@@ -39,6 +40,40 @@ describe("Test registerUserView", () => {
     }));
 
     const response = await request(app).post("/auth/register");
+
+    expect(response.body).toEqual({
+      accessToken: "apple",
+      refreshToken: "banana",
+    });
+  });
+});
+
+describe("Test loginUserView", () => {
+  test("loginUserView delegates username to loginUserBridge", async () => {
+    await request(app).post("/auth/login").send({ username: "potato" });
+
+    expect(loginUserBridge).toHaveBeenCalledWith("potato", undefined);
+  });
+
+  test("loginUserView delegates password to loginUserBridge", async () => {
+    await request(app).post("/auth/login").send({ password: "tomato" });
+
+    expect(loginUserBridge).toHaveBeenCalledWith(undefined, "tomato");
+  });
+
+  test("loginUserView returns 201 CREATED status code", async () => {
+    const response = await request(app).post("/auth/login");
+
+    expect(response.status).toEqual(StatusCodes.CREATED);
+  });
+
+  test("loginUserView returns tokens returned from loginUserBridge", async () => {
+    (loginUserBridge as jest.Mock).mockImplementationOnce(() => ({
+      accessToken: "apple",
+      refreshToken: "banana",
+    }));
+
+    const response = await request(app).post("/auth/login");
 
     expect(response.body).toEqual({
       accessToken: "apple",

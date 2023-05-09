@@ -1,17 +1,25 @@
 import { v4 as uuidV4 } from "uuid";
 
-import { User } from "@prisma/client";
+import type { User } from "@prisma/client";
+import type { GeneratedTokens } from "main/utils/jwt/interfaces";
 
-import { GeneratedTokens } from "main/utils/jwt/interfaces";
+import { InvalidDataError } from "main/utils/errors/InvalidDataError/InvalidDataError";
 import { AlreadyExistsError } from "main/utils/errors/AlreadyExistsError/AlreadyExistsError";
 
 import { generateTokens } from "main/utils/jwt/tokens";
 import {
+  createRefreshToken,
+  deleteRefreshTokensByUserId,
+} from "main/auth/dbServices";
+import {
+  comparePasswords,
+  hashPassword,
+  hashToken,
+} from "main/utils/jwt/crypto";
+import {
   findUserByUsername,
   createUserByUsernameAndPassword,
 } from "main/users/dbServices";
-import { createRefreshToken } from "main/auth/dbServices";
-import { hashPassword, hashToken } from "main/utils/jwt/crypto";
 
 export const registerUserService = async (
   username: string,
@@ -31,6 +39,30 @@ export const registerUserService = async (
   );
 
   return registeredUser;
+};
+
+export const loginUserService = async (
+  username: string,
+  password: string
+): Promise<User> => {
+  const foundUser = await findUserByUsername(username);
+
+  if (foundUser === null) {
+    throw new InvalidDataError("Credentials");
+  }
+
+  const isPasswordMatching = await comparePasswords(
+    password,
+    foundUser.password
+  );
+
+  if (!isPasswordMatching) {
+    throw new InvalidDataError("Credentials");
+  }
+
+  await deleteRefreshTokensByUserId(foundUser.id);
+
+  return foundUser;
 };
 
 export const generateAndSaveTokensService = async (
