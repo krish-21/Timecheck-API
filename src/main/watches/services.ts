@@ -1,5 +1,6 @@
 import type { Watch } from "@prisma/client";
 
+import { NotFoundError } from "main/utils/errors/NotFoundError/NotFoundError";
 import { InvalidDataError } from "main/utils/errors/InvalidDataError/InvalidDataError";
 import { AlreadyExistsError } from "main/utils/errors/AlreadyExistsError/AlreadyExistsError";
 
@@ -29,6 +30,16 @@ export const getAllWatchesService = async (
     watches,
     count,
   };
+};
+
+export const getWatchService = async (watchId: string): Promise<Watch> => {
+  const foundWatch = await findWatchById(watchId);
+
+  if (foundWatch === null) {
+    throw new NotFoundError("Watch");
+  }
+
+  return foundWatch;
 };
 
 export const createWatchService = async (

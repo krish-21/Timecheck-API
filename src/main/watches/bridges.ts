@@ -14,6 +14,7 @@ import {
 
 import {
   getAllWatchesService,
+  getWatchService,
   createWatchService,
   updateWatchService,
   deleteWatchService,
@@ -46,6 +47,16 @@ export const getAllWatchesBridge = async (
   };
 };
 
+export const findWatchBridge = async (
+  watchIdValue: string
+): Promise<WatchResponse> => {
+  const { watchId } = validateDeleteWatchValues(watchIdValue);
+
+  const foundWatch = await getWatchService(watchId);
+
+  return transformWatch(foundWatch);
+};
+
 export const createWatchBridge = async (
   userId: string,
   nameValue?: unknown,
@@ -58,14 +69,9 @@ export const createWatchBridge = async (
     referenceValue
   );
 
-  const createdSource = await createWatchService(
-    userId,
-    name,
-    brand,
-    reference
-  );
+  const createdWatch = await createWatchService(userId, name, brand, reference);
 
-  return transformWatch(createdSource);
+  return transformWatch(createdWatch);
 };
 
 export const updateWatchBridge = async (
