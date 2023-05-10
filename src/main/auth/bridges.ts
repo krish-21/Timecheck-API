@@ -1,4 +1,4 @@
-import type { GeneratedTokens } from "main/utils/jwt/interfaces";
+import type { AuthResponse } from "main/auth/interfaces";
 
 import { validateAuthBody, validateRefreshTokenValue } from "main/auth/utils";
 
@@ -13,7 +13,7 @@ import {
 export const registerUserBridge = async (
   usernameValue?: unknown,
   passwordValue?: unknown
-): Promise<GeneratedTokens> => {
+): Promise<AuthResponse> => {
   const { username, password } = validateAuthBody(usernameValue, passwordValue);
 
   const { id: registeredUserId } = await registerUserService(
@@ -21,28 +21,34 @@ export const registerUserBridge = async (
     password
   );
 
-  return generateAndSaveTokensService(registeredUserId);
+  const tokens = await generateAndSaveTokensService(registeredUserId);
+
+  return { userId: registeredUserId, tokens };
 };
 
 export const loginUserBridge = async (
   usernameValue?: unknown,
   passwordValue?: unknown
-): Promise<GeneratedTokens> => {
+): Promise<AuthResponse> => {
   const { username, password } = validateAuthBody(usernameValue, passwordValue);
 
   const { id: foundUserId } = await loginUserService(username, password);
 
-  return generateAndSaveTokensService(foundUserId);
+  const tokens = await generateAndSaveTokensService(foundUserId);
+
+  return { userId: foundUserId, tokens };
 };
 
 export const refreshUserTokensBridge = async (
   refreshTokenValue?: unknown
-): Promise<GeneratedTokens> => {
+): Promise<AuthResponse> => {
   const refreshToken = validateRefreshTokenValue(refreshTokenValue);
 
   const { id: decodedUserId } = await refreshUserTokensService(refreshToken);
 
-  return generateAndSaveTokensService(decodedUserId);
+  const tokens = await generateAndSaveTokensService(decodedUserId);
+
+  return { userId: decodedUserId, tokens };
 };
 
 export const logoutUserBridge = async (userId: string): Promise<string> => {

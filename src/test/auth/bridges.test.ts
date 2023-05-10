@@ -106,13 +106,13 @@ describe("Test registerUserBridge", () => {
     expect(generateAndSaveTokensService).toHaveBeenCalledWith("potato");
   });
 
-  test("registerUserBridge returns response from generateAndSaveTokensService", async () => {
-    const mockTokenResonse = {
+  test("registerUserBridge returns response from generateAndSaveTokensService under key token and userId under key userId", async () => {
+    const mockTokenResponse = {
       random: "potato",
       data: "tomato",
     };
     (generateAndSaveTokensService as jest.Mock).mockImplementationOnce(
-      () => mockTokenResonse
+      () => mockTokenResponse
     );
 
     const response = await registerUserBridge(
@@ -120,7 +120,10 @@ describe("Test registerUserBridge", () => {
       "ABCdefGHI123#"
     );
 
-    expect(response).toEqual(mockTokenResonse);
+    expect(response).toEqual({
+      userId: "potato",
+      tokens: mockTokenResponse,
+    });
   });
 });
 
@@ -198,18 +201,21 @@ describe("Test loginUserBridge", () => {
     expect(generateAndSaveTokensService).toHaveBeenCalledWith("potato");
   });
 
-  test("loginUserBridge returns response from generateAndSaveTokensService", async () => {
-    const mockTokenResonse = {
+  test("loginUserBridge returns response from generateAndSaveTokensService under key token and userId under key userId", async () => {
+    const mockTokenResponse = {
       random: "potato",
       data: "tomato",
     };
     (generateAndSaveTokensService as jest.Mock).mockImplementationOnce(
-      () => mockTokenResonse
+      () => mockTokenResponse
     );
 
     const response = await loginUserBridge("decentUsername", "ABCdefGHI123#");
 
-    expect(response).toEqual(mockTokenResonse);
+    expect(response).toEqual({
+      userId: "potato",
+      tokens: mockTokenResponse,
+    });
   });
 });
 
@@ -236,18 +242,21 @@ describe("Test refreshUserTokensBridge", () => {
     expect(generateAndSaveTokensService).toHaveBeenCalledWith("potato");
   });
 
-  test("refreshUserTokensBridge returns response from generateAndSaveTokensService", async () => {
-    const mockTokenResonse = {
+  test("refreshUserTokensBridge returns response from generateAndSaveTokensService under key token and userId under key userId", async () => {
+    const mockTokenResponse = {
       random: "potato",
       data: "tomato",
     };
     (generateAndSaveTokensService as jest.Mock).mockImplementationOnce(
-      () => mockTokenResonse
+      () => mockTokenResponse
     );
 
     const response = await refreshUserTokensBridge("");
 
-    expect(response).toEqual(mockTokenResonse);
+    expect(response).toEqual({
+      userId: "potato",
+      tokens: mockTokenResponse,
+    });
   });
 });
 
