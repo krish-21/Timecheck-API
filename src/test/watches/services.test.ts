@@ -1,3 +1,4 @@
+import { NotFoundError } from "main/utils/errors/NotFoundError/NotFoundError";
 import { InvalidDataError } from "main/utils/errors/InvalidDataError/InvalidDataError";
 import { AlreadyExistsError } from "main/utils/errors/AlreadyExistsError/AlreadyExistsError";
 
@@ -13,6 +14,7 @@ import {
 
 import {
   getAllWatchesService,
+  getWatchService,
   createWatchService,
   updateWatchService,
   deleteWatchService,
@@ -94,6 +96,36 @@ describe("Test getAllWatchesService", () => {
         data: "potato",
         tasty: "tomato",
       },
+    });
+  });
+});
+
+describe("Test getWatchService", () => {
+  test("getWatchService delegates watchId to findWatchById", async () => {
+    await getWatchService("celery");
+
+    expect(findWatchById).toHaveBeenCalledWith("celery");
+  });
+
+  test("getWatchService throws error if findWatchById returns null", async () => {
+    (findWatchById as jest.Mock).mockImplementationOnce(() => null);
+
+    await expect(getWatchService("")).rejects.toThrow(
+      new NotFoundError("Watch")
+    );
+  });
+
+  test("getWatchService returns response from findWatchById", async () => {
+    (findWatchById as jest.Mock).mockImplementationOnce(() => ({
+      pav: "bhaji",
+      chole: "bhature",
+    }));
+
+    const response = await getWatchService("");
+
+    expect(response).toEqual({
+      pav: "bhaji",
+      chole: "bhature",
     });
   });
 });

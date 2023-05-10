@@ -21,6 +21,10 @@ export interface GetAllWatchesResponse {
   skip: number;
 }
 
+export interface GetWatchRouteParams {
+  watchId: string;
+}
+
 export interface CreateWatchBody {
   name: unknown;
   brand: unknown;

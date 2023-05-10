@@ -9,6 +9,7 @@ import {
 
 import {
   getAllWatchesService,
+  getWatchService,
   createWatchService,
   updateWatchService,
   deleteWatchService,
@@ -16,6 +17,7 @@ import {
 
 import {
   getAllWatchesBridge,
+  findWatchBridge,
   createWatchBridge,
   updateWatchBridge,
   deleteWatchBridge,
@@ -32,6 +34,7 @@ jest.mock("main/watches/utils", () => ({
 
 jest.mock("main/watches/services", () => ({
   getAllWatchesService: jest.fn(() => ({})),
+  getWatchService: jest.fn(),
   createWatchService: jest.fn(),
   updateWatchService: jest.fn(),
   deleteWatchService: jest.fn(),
@@ -189,6 +192,52 @@ describe("Test getAllWatchesBridge", () => {
     const response = await getAllWatchesBridge("");
 
     expect(response).toHaveProperty("skip", {
+      random: "data",
+      irrelavant: "info",
+    });
+  });
+});
+
+describe("Test findWatchBridge", () => {
+  test("findWatchBridge delegates watchId to validateDeleteWatchValues", async () => {
+    await findWatchBridge("potato");
+
+    expect(validateDeleteWatchValues).toHaveBeenCalledWith("potato");
+  });
+
+  test("findWatchBridge delegates validated watchId to getWatchService", async () => {
+    (validateDeleteWatchValues as jest.Mock).mockImplementationOnce(() => ({
+      watchId: "onion",
+    }));
+
+    await findWatchBridge("");
+
+    expect(getWatchService).toHaveBeenCalledWith("onion");
+  });
+
+  test("findWatchBridge delegates deleted watch to transformWatch", async () => {
+    (getWatchService as jest.Mock).mockImplementationOnce(() => ({
+      random: "data",
+      irrelavant: "info",
+    }));
+
+    await findWatchBridge("");
+
+    expect(transformWatch).toHaveBeenCalledWith({
+      random: "data",
+      irrelavant: "info",
+    });
+  });
+
+  test("findWatchBridge returns response from transformWatch", async () => {
+    (transformWatch as jest.Mock).mockImplementationOnce(() => ({
+      random: "data",
+      irrelavant: "info",
+    }));
+
+    const response = await findWatchBridge("");
+
+    expect(response).toEqual({
       random: "data",
       irrelavant: "info",
     });

@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import {
   GetAllWatchesQueryParams,
   GetAllWatchesResponse,
+  GetWatchRouteParams,
   CreateWatchBody,
   UpdateWatchRouteParams,
   UpdateWatchBody,
@@ -13,6 +14,7 @@ import {
 
 import {
   getAllWatchesBridge,
+  findWatchBridge,
   createWatchBridge,
   updateWatchBridge,
   deleteWatchBridge,
@@ -30,6 +32,15 @@ export const getAllWatchesView = async (
   );
 
   res.status(StatusCodes.OK).json(allWatches);
+};
+
+export const getWatchView = async (
+  req: Request<GetWatchRouteParams, object, object, object>,
+  res: Response<WatchResponse>
+): Promise<void> => {
+  const createdWatch = await findWatchBridge(req.params.watchId);
+
+  res.status(StatusCodes.OK).json(createdWatch);
 };
 
 export const createWatchView = async (

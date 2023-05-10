@@ -5,6 +5,7 @@ import { app } from "main/app";
 
 import {
   getAllWatchesBridge,
+  findWatchBridge,
   createWatchBridge,
   updateWatchBridge,
   deleteWatchBridge,
@@ -12,6 +13,7 @@ import {
 
 jest.mock("main/watches/bridges", () => ({
   getAllWatchesBridge: jest.fn(),
+  findWatchBridge: jest.fn(),
   createWatchBridge: jest.fn(),
   updateWatchBridge: jest.fn(),
   deleteWatchBridge: jest.fn(),
@@ -88,6 +90,34 @@ describe("Test getAllWatchesView", () => {
     }));
 
     const response = await request(app).get("/watches");
+
+    expect(response.body).toEqual({
+      random: "data",
+      hello: "world",
+    });
+  });
+});
+
+describe("Test findWatchView", () => {
+  test("findWatchView delegates userId from request context & courseId from route to findWatchBridge", async () => {
+    await request(app).get("/watches/123");
+
+    expect(findWatchBridge).toHaveBeenCalledWith("123");
+  });
+
+  test("findWatchView returns 200 OK status code", async () => {
+    const response = await request(app).get("/watches/123");
+
+    expect(response.status).toEqual(StatusCodes.OK);
+  });
+
+  test("findWatchView returns response from findWatchBridge", async () => {
+    (findWatchBridge as jest.Mock).mockImplementationOnce(() => ({
+      random: "data",
+      hello: "world",
+    }));
+
+    const response = await request(app).get("/watches/123");
 
     expect(response.body).toEqual({
       random: "data",
