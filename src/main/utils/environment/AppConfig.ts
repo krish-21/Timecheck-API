@@ -1,5 +1,6 @@
 import dotnev from "dotenv";
-import { ExpressError } from "main/utils/errors/ExpressError/ExpressError";
+
+import { EnvironmentVariableError } from "main/utils/errors/EnvironmentVariableError/EnvironmentVariableError";
 
 dotnev.config();
 
@@ -16,7 +17,7 @@ class AppConfig {
       env["JWT_ACCESS_SECRET"] === undefined ||
       env["JWT_REFRESH_SECRET"] === undefined
     ) {
-      throw new ExpressError(500, "Environmental Variables Error");
+      throw new EnvironmentVariableError();
     }
 
     this.env = env["NODE_ENV"];
