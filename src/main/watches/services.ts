@@ -4,8 +4,28 @@ import { AlreadyExistsError } from "main/utils/errors/AlreadyExistsError/Already
 
 import {
   findWatchByReference,
+  findAllWatches,
+  countAllWatches,
   createWatchForUser,
 } from "main/watches/dbServices";
+
+export const getAllWatchesService = async (
+  userId: string,
+  take: number,
+  skip: number,
+  onlyUserWatches: boolean
+): Promise<{ watches: Watch[]; count: number }> => {
+  const passedUserId = onlyUserWatches ? userId : undefined;
+
+  const watches = await findAllWatches(take, skip, passedUserId);
+
+  const count = await countAllWatches(passedUserId);
+
+  return {
+    watches,
+    count,
+  };
+};
 
 export const createWatchService = async (
   userId: string,

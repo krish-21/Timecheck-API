@@ -1,9 +1,28 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 
-import { CreateWatchBody, WatchResponse } from "main/watches/interfaces";
+import {
+  GetAllWatchesQueryParams,
+  GetAllWatchesResponse,
+  CreateWatchBody,
+  WatchResponse,
+} from "main/watches/interfaces";
 
-import { createWatchBridge } from "main/watches/bridges";
+import { getAllWatchesBridge, createWatchBridge } from "main/watches/bridges";
+
+export const getAllWatchesView = async (
+  req: Request<object, object, object, GetAllWatchesQueryParams>,
+  res: Response<GetAllWatchesResponse>
+): Promise<void> => {
+  const allWatches = await getAllWatchesBridge(
+    req.context.customJWTPayload.userId,
+    req.query.take,
+    req.query.skip,
+    req.query.onlyMyWatches
+  );
+
+  res.status(StatusCodes.OK).json(allWatches);
+};
 
 export const createWatchView = async (
   req: Request<object, object, CreateWatchBody, object>,

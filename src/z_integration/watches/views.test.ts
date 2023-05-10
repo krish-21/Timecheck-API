@@ -3,9 +3,10 @@ import { StatusCodes } from "http-status-codes";
 
 import { app } from "main/app";
 
-import { createWatchBridge } from "main/watches/bridges";
+import { getAllWatchesBridge, createWatchBridge } from "main/watches/bridges";
 
 jest.mock("main/watches/bridges", () => ({
+  getAllWatchesBridge: jest.fn(),
   createWatchBridge: jest.fn(),
 }));
 
@@ -20,6 +21,72 @@ jest.mock("main/middleware/isAuthenticated", () => ({
 
 afterEach(() => {
   jest.clearAllMocks();
+});
+
+describe("Test getAllWatchesView", () => {
+  test("getAllWatchesView delegates userId from request context to getAllWatchesBridge", async () => {
+    await request(app).get("/watches");
+
+    expect(getAllWatchesBridge).toHaveBeenCalledWith(
+      "fakeUserId",
+      undefined,
+      undefined,
+      undefined
+    );
+  });
+
+  test("getAllWatchesView delegates take query to getAllWatchesBridge", async () => {
+    await request(app).get("/watches").query({ take: "potato" });
+
+    expect(getAllWatchesBridge).toHaveBeenCalledWith(
+      "fakeUserId",
+      "potato",
+      undefined,
+      undefined
+    );
+  });
+
+  test("getAllWatchesView delegates skip query to getAllWatchesBridge", async () => {
+    await request(app).get("/watches").query({ skip: "tomato" });
+
+    expect(getAllWatchesBridge).toHaveBeenCalledWith(
+      "fakeUserId",
+      undefined,
+      "tomato",
+      undefined
+    );
+  });
+
+  test("getAllWatchesView delegates onlyMyWatches query to getAllWatchesBridge", async () => {
+    await request(app).get("/watches").query({ onlyMyWatches: "onion" });
+
+    expect(getAllWatchesBridge).toHaveBeenCalledWith(
+      "fakeUserId",
+      undefined,
+      undefined,
+      "onion"
+    );
+  });
+
+  test("getAllWatchesView returns 200 OK status code", async () => {
+    const response = await request(app).get("/watches");
+
+    expect(response.status).toEqual(StatusCodes.OK);
+  });
+
+  test("getAllWatchesView returns response from getAllWatchesBridge", async () => {
+    (getAllWatchesBridge as jest.Mock).mockImplementationOnce(() => ({
+      random: "data",
+      hello: "world",
+    }));
+
+    const response = await request(app).get("/watches");
+
+    expect(response.body).toEqual({
+      random: "data",
+      hello: "world",
+    });
+  });
 });
 
 describe("Test createWatchView", () => {

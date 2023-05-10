@@ -4,12 +4,17 @@ import { prismaClient } from "main/utils/db/prismaClient";
 import {
   findWatchByReference,
   createWatchForUser,
+  findAllWatches,
+  countAllWatches,
 } from "main/watches/dbServices";
 
 const userId = uuidV4(),
   secondUserId = uuidV4();
-let firstWatchId: string;
+
+let firstWatchId: string, secondWatchId: string, thirdWatchId: string;
 let firstWatchReference: string;
+
+let firstWatchIdOfFirstUser: string, secondWatchIdOfFirstUser: string;
 
 beforeAll(async () => {
   await prismaClient.$connect();
@@ -48,24 +53,36 @@ beforeAll(async () => {
         name: "Onion",
         brand: "Bulb",
         reference: uuidV4(),
-        userId,
+        userId: secondUserId,
       },
     ],
   });
 
   const [watch1, watch2, watch3] = await prismaClient.watch.findMany({
     take: 3,
-    where: { userId },
     orderBy: {
-      name: "asc",
+      createdAt: "desc",
     },
   });
 
   if (watch1 === undefined || watch2 === undefined || watch3 === undefined) {
-    throw new Error("Setup of Watchs failed");
+    throw new Error("Setup of Watches failed");
   }
 
   ({ id: firstWatchId, reference: firstWatchReference } = watch1);
+  ({ id: secondWatchId } = watch2);
+  ({ id: thirdWatchId } = watch3);
+
+  const [watch4, watch5] = await prismaClient.watch.findMany({
+    take: 2,
+    where: { userId },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  ({ id: firstWatchIdOfFirstUser } = watch4);
+  ({ id: secondWatchIdOfFirstUser } = watch5);
 });
 
 afterAll(async () => {
@@ -95,6 +112,76 @@ describe("Test findWatchByReference", () => {
     expect(foundWatch).toHaveProperty("id", firstWatchId);
     expect(foundWatch).toHaveProperty("reference", firstWatchReference);
     expect(foundWatch).toHaveProperty("userId", userId);
+  });
+});
+
+describe("Test findAllWatches", () => {
+  test("findAllWatches returns first take watches", async () => {
+    const foundWatches = await findAllWatches(2, 0);
+
+    expect(foundWatches.length).toEqual(2);
+  });
+
+  test("findAllWatches returns correct first watch for first take watches", async () => {
+    const foundWatches = await findAllWatches(2, 0);
+
+    expect(foundWatches[0]).toHaveProperty("id", firstWatchId);
+  });
+
+  test("findAllWatches returns correct second watch for first take watches", async () => {
+    const foundWatches = await findAllWatches(2, 0);
+
+    expect(foundWatches[1]).toHaveProperty("id", secondWatchId);
+  });
+
+  test("findAllWatches skips 1 & returns second 2", async () => {
+    const foundWatches = await findAllWatches(2, 1);
+
+    expect(foundWatches.length).toEqual(2);
+  });
+
+  test("findAllWatches skips 1 & returns correct first watch for first take watches", async () => {
+    const foundWatches = await findAllWatches(2, 1);
+
+    expect(foundWatches[0]).toHaveProperty("id", secondWatchId);
+  });
+
+  test("findAllWatches skips 1 & returns correct second watch for first take watches", async () => {
+    const foundWatches = await findAllWatches(2, 1);
+
+    expect(foundWatches[1]).toHaveProperty("id", thirdWatchId);
+  });
+
+  test("findAllWatches returns first take watches after filtering by userId", async () => {
+    const foundWatches = await findAllWatches(2, 0, userId);
+
+    expect(foundWatches.length).toEqual(2);
+  });
+
+  test("findAllWatches returns correct first watch for first take watches after filtering by courseId", async () => {
+    const foundWatches = await findAllWatches(2, 0, userId);
+
+    expect(foundWatches[0]).toHaveProperty("id", firstWatchIdOfFirstUser);
+  });
+
+  test("findAllWatches returns correct second watch for first take watches after filtering by courseId", async () => {
+    const foundWatches = await findAllWatches(2, 0, userId);
+
+    expect(foundWatches[1]).toHaveProperty("id", secondWatchIdOfFirstUser);
+  });
+});
+
+describe("Test countAllWatches", () => {
+  test("countAllWatches returns correct number of watches", async () => {
+    const numberOfWatches = await countAllWatches();
+
+    expect(numberOfWatches).toEqual(3);
+  });
+
+  test("countAllWatches returns correct number of filtered watches", async () => {
+    const numberOfWatches = await countAllWatches(userId);
+
+    expect(numberOfWatches).toEqual(2);
   });
 });
 

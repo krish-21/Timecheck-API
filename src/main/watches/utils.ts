@@ -3,11 +3,53 @@ import type { WatchResponse } from "main/watches/interfaces";
 
 import { InvalidDataError } from "main/utils/errors/InvalidDataError/InvalidDataError";
 
+import { MAX_QUERY_LENGTH } from "main/utils/constants/queries";
 import {
   NAME_MAXIMUM_LENGTH,
   BRAND_MAXIMUM_LENGTH,
   REFERENCE_MAXIMUM_LENGTH,
 } from "main/watches/constants";
+
+export const validateGetAllWatchesQueries = (
+  takeQuery?: unknown,
+  skipQuery?: unknown,
+  onlyMyWatchesQuery?: unknown
+): { take: number; skip: number; onlyUserWatches: boolean } => {
+  if (
+    typeof takeQuery !== "string" ||
+    takeQuery.length > MAX_QUERY_LENGTH ||
+    isNaN(Number(takeQuery)) ||
+    Number(takeQuery) <= 0
+  ) {
+    throw new InvalidDataError("take");
+  }
+
+  if (
+    typeof skipQuery !== "string" ||
+    skipQuery.length > MAX_QUERY_LENGTH ||
+    isNaN(Number(skipQuery)) ||
+    Number(skipQuery) < 0
+  ) {
+    throw new InvalidDataError("skip");
+  }
+
+  let onlyUserWatches: boolean;
+  if (typeof onlyMyWatchesQuery !== "string") {
+    throw new InvalidDataError("onlyMyWatches");
+  } else if (onlyMyWatchesQuery === "true") {
+    onlyUserWatches = true;
+  } else if (onlyMyWatchesQuery === "false") {
+    onlyUserWatches = false;
+  } else {
+    throw new InvalidDataError("onlyMyWatches");
+  }
+
+  return {
+    take: Number(takeQuery),
+    skip: Number(skipQuery),
+    onlyUserWatches,
+  };
+};
 
 export const validateCreateWatchBody = (
   nameValue?: unknown,
@@ -65,4 +107,8 @@ export const transformWatch = (watch: Watch): WatchResponse => {
     createdAt: watch.createdAt.getTime(),
     updatedAt: watch.updatedAt.getTime(),
   };
+};
+
+export const transformWatches = (watches: Watch[]): WatchResponse[] => {
+  return watches.map(transformWatch);
 };

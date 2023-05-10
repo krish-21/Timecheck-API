@@ -2,18 +2,91 @@ import { AlreadyExistsError } from "main/utils/errors/AlreadyExistsError/Already
 
 import {
   findWatchByReference,
+  findAllWatches,
+  countAllWatches,
   createWatchForUser,
 } from "main/watches/dbServices";
 
-import { createWatchService } from "main/watches/services";
+import {
+  getAllWatchesService,
+  createWatchService,
+} from "main/watches/services";
 
 jest.mock("main/watches/dbServices", () => ({
   findWatchByReference: jest.fn(() => null),
+  findAllWatches: jest.fn(),
+  countAllWatches: jest.fn(() => 0),
   createWatchForUser: jest.fn(),
 }));
 
 afterEach(() => {
   jest.clearAllMocks();
+});
+
+describe("Test getAllWatchesService", () => {
+  test("getAllWatchesService delegates take to findAllWatches", async () => {
+    await getAllWatchesService("", 123, -1, false);
+
+    expect(findAllWatches).toHaveBeenCalledWith(123, -1, undefined);
+  });
+
+  test("getAllWatchesService delegates skip to findAllWatches", async () => {
+    await getAllWatchesService("", -1, 456, false);
+
+    expect(findAllWatches).toHaveBeenCalledWith(-1, 456, undefined);
+  });
+
+  test("getAllWatchesService delegates userId if onlyUserWatches is true", async () => {
+    await getAllWatchesService("potato", -1, -1, true);
+
+    expect(findAllWatches).toHaveBeenCalledWith(-1, -1, "potato");
+  });
+
+  test("getAllWatchesService delegates undefined to countAllWatches if onlyUserWatches is false", async () => {
+    await getAllWatchesService("potato", -1, -1, false);
+
+    expect(countAllWatches).toHaveBeenCalledWith(undefined);
+  });
+
+  test("getAllWatchesService delegates undefined to countAllWatches if onlyUserWatches is true", async () => {
+    await getAllWatchesService("potato", -1, -1, true);
+
+    expect(countAllWatches).toHaveBeenCalledWith("potato");
+  });
+
+  test("getAllWatchesService returns response from findAllWatches undeer key watches", async () => {
+    (findAllWatches as jest.Mock).mockImplementationOnce(() => ({
+      data: "potato",
+      tasty: "tomato",
+    }));
+
+    const response = await getAllWatchesService("", -1, -1, false);
+
+    expect(response).toEqual({
+      watches: {
+        data: "potato",
+        tasty: "tomato",
+      },
+      count: 0,
+    });
+  });
+
+  test("getAllWatchesService returns response from countAllWatches under key count", async () => {
+    (countAllWatches as jest.Mock).mockImplementationOnce(() => ({
+      data: "potato",
+      tasty: "tomato",
+    }));
+
+    const response = await getAllWatchesService("", -1, -1, true);
+
+    expect(response).toEqual({
+      flashCards: undefined,
+      count: {
+        data: "potato",
+        tasty: "tomato",
+      },
+    });
+  });
 });
 
 describe("Test createWatchService", () => {
