@@ -1,0 +1,42 @@
+FROM node:18.14-alpine as base
+
+WORKDIR /server
+
+ENV NODE_ENV development
+
+COPY ./prisma/ ./prisma/
+COPY package.json ./
+COPY package-lock.json ./
+COPY tsconfig.json ./
+COPY tsconfig.build.json ./
+RUN npm ci
+
+COPY ./src/main/ ./src/main/
+COPY ./types ./types
+
+RUN npm run generate
+
+RUN npm run build
+
+FROM node:18.14-alpine as build
+
+WORKDIR /build
+
+COPY ./prisma/ ./prisma/
+COPY package.json ./
+COPY package-lock.json ./
+
+ENV NODE_ENV development
+ENV PORT 8000
+ENV DATABASE_URL postgresql://timecheck:timecheck@postgres:5432/timecheck
+ENV JWT_ACCESS_SECRET notsosecret
+ENV JWT_REFRESH_SECRET NotSoSecret
+
+RUN npm ci --omit=dev
+
+COPY --from=base /server/dist ./dist
+
+EXPOSE 8000
+EXPOSE 5555
+
+CMD npm run migrateDev && npm start & npm run studio
