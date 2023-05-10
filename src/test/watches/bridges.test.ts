@@ -2,6 +2,7 @@ import {
   validateGetAllWatchesQueries,
   validateCreateWatchBody,
   validateUpdateWatchBody,
+  validateDeleteWatchValues,
   transformWatch,
   transformWatches,
 } from "main/watches/utils";
@@ -10,18 +11,21 @@ import {
   getAllWatchesService,
   createWatchService,
   updateWatchService,
+  deleteWatchService,
 } from "main/watches/services";
 
 import {
   getAllWatchesBridge,
   createWatchBridge,
   updateWatchBridge,
+  deleteWatchBridge,
 } from "main/watches/bridges";
 
 jest.mock("main/watches/utils", () => ({
   validateGetAllWatchesQueries: jest.fn(() => ({})),
   validateCreateWatchBody: jest.fn(() => ({})),
   validateUpdateWatchBody: jest.fn(() => ({})),
+  validateDeleteWatchValues: jest.fn(() => ({})),
   transformWatch: jest.fn(),
   transformWatches: jest.fn(),
 }));
@@ -30,6 +34,7 @@ jest.mock("main/watches/services", () => ({
   getAllWatchesService: jest.fn(() => ({})),
   createWatchService: jest.fn(),
   updateWatchService: jest.fn(),
+  deleteWatchService: jest.fn(),
 }));
 
 afterEach(() => {
@@ -448,6 +453,58 @@ describe("Test updateWatchBridge", () => {
     }));
 
     const response = await updateWatchBridge("", "");
+
+    expect(response).toEqual({
+      random: "data",
+      irrelavant: "info",
+    });
+  });
+});
+
+describe("Test deleteWatchBridge", () => {
+  test("deleteWatchBridge delegates watchId to validateDeleteWatchValues", async () => {
+    await deleteWatchBridge("", "potato");
+
+    expect(validateDeleteWatchValues).toHaveBeenCalledWith("potato");
+  });
+
+  test("deleteWatchBridge delegates userId to deleteWatchService", async () => {
+    await deleteWatchBridge("tomato", "");
+
+    expect(deleteWatchService).toHaveBeenCalledWith("tomato", undefined);
+  });
+
+  test("deleteWatchBridge delegates validated watchId to deleteWatchService", async () => {
+    (validateDeleteWatchValues as jest.Mock).mockImplementationOnce(() => ({
+      watchId: "onion",
+    }));
+
+    await deleteWatchBridge("", "");
+
+    expect(deleteWatchService).toHaveBeenCalledWith("", "onion");
+  });
+
+  test("deleteWatchBridge delegates deleted watch to transformWatch", async () => {
+    (deleteWatchService as jest.Mock).mockImplementationOnce(() => ({
+      random: "data",
+      irrelavant: "info",
+    }));
+
+    await deleteWatchBridge("", "");
+
+    expect(transformWatch).toHaveBeenCalledWith({
+      random: "data",
+      irrelavant: "info",
+    });
+  });
+
+  test("deleteWatchBridge returns response from transformWatch", async () => {
+    (transformWatch as jest.Mock).mockImplementationOnce(() => ({
+      random: "data",
+      irrelavant: "info",
+    }));
+
+    const response = await deleteWatchBridge("", "");
 
     expect(response).toEqual({
       random: "data",

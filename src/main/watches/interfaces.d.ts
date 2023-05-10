@@ -36,3 +36,7 @@ export interface UpdateWatchBody {
   brand: unknown;
   reference: unknown;
 }
+
+export interface DeleteWatchRouteParams {
+  watchId: string;
+}

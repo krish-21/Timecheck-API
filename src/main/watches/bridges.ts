@@ -7,6 +7,7 @@ import {
   validateGetAllWatchesQueries,
   validateCreateWatchBody,
   validateUpdateWatchBody,
+  validateDeleteWatchValues,
   transformWatch,
   transformWatches,
 } from "main/watches/utils";
@@ -15,6 +16,7 @@ import {
   getAllWatchesService,
   createWatchService,
   updateWatchService,
+  deleteWatchService,
 } from "main/watches/services";
 
 export const getAllWatchesBridge = async (
@@ -89,4 +91,15 @@ export const updateWatchBridge = async (
   );
 
   return transformWatch(updatedSource);
+};
+
+export const deleteWatchBridge = async (
+  userId: string,
+  watchIdValue: string
+): Promise<WatchResponse> => {
+  const { watchId } = validateDeleteWatchValues(watchIdValue);
+
+  const deletedWatch = await deleteWatchService(userId, watchId);
+
+  return transformWatch(deletedWatch);
 };
