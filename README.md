@@ -1,6 +1,45 @@
 # Timecheck API
 
-# StudyApp Setup Local
+# StudyApp Setup Docker
+
+## Prerequisites
+
+1. Install [Docker](https://docs.docker.com/get-docker/)
+2. Install [git](https://github.com/git-guides/install-git)
+
+## Run Backend as a Docker Container
+
+1. Clone Repository:
+
+```bash
+git clone https://github.com/krish-21/Timecheck-API.git
+```
+
+2. cd into Directory:
+
+```bash
+cd StudyApp
+```
+
+3. Start Server:
+
+```bash
+docker-compose -f docker-dev.yaml up -d
+```
+
+Server is ready at [http://127.0.0.1:8000](http://127.0.0.1:8000) | [http://localhost:8000](http://localhost:8000)
+
+Prisma Studio is ready at: [http://127.0.0.1:5555](http://127.0.0.1:5555) | [http://localhost:5555](http://localhost:5555)
+
+## To Stop the Server
+
+1. Stop Server:
+
+```bash
+docker-compose -f docker-dev.yaml down
+```
+
+# Timecheck Setup Local
 
 ## Prerequisites
 
