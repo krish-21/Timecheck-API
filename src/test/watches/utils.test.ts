@@ -7,7 +7,15 @@ import {
   REFERENCE_MAXIMUM_LENGTH,
 } from "main/watches/constants";
 
-import { validateCreateWatchBody, transformWatch } from "main/watches/utils";
+import {
+  validateGetAllWatchesQueries,
+  validateCreateWatchBody,
+  transformWatch,
+} from "main/watches/utils";
+
+const validTakeQuery = "10";
+const validSkipQuery = "2";
+const validOnlyMyWatchesQuery = "true";
 
 const validName = "margharita";
 const validBrand = "marinara";
@@ -25,6 +33,132 @@ const mockWatch: Watch = {
 
 afterEach(() => {
   jest.clearAllMocks();
+});
+
+describe("Test validateGetAllWatchesQueries", () => {
+  test("validateGetAllWatchesQueries throws error if takeQuery is undefined", () => {
+    expect(() => validateGetAllWatchesQueries()).toThrow(
+      new InvalidDataError("take")
+    );
+  });
+
+  test("validateGetAllWatchesQueries throws error if takeQuery is not a string", () => {
+    expect(() => validateGetAllWatchesQueries({})).toThrow(
+      new InvalidDataError("take")
+    );
+  });
+
+  test("validateGetAllWatchesQueries throws error if takeQuery is too long", () => {
+    expect(() => validateGetAllWatchesQueries("1234")).toThrow(
+      new InvalidDataError("take")
+    );
+  });
+
+  test("validateGetAllWatchesQueries throws error if takeQuery cannot be casted to a number", () => {
+    expect(() => validateGetAllWatchesQueries("[]")).toThrow(
+      new InvalidDataError("take")
+    );
+  });
+
+  test("validateGetAllWatchesQueries throws error if casted takeQuery is zero", () => {
+    expect(() => validateGetAllWatchesQueries("0")).toThrow(
+      new InvalidDataError("take")
+    );
+  });
+
+  test("validateGetAllWatchesQueries throws error if casted takeQuery is negative", () => {
+    expect(() => validateGetAllWatchesQueries("-2")).toThrow(
+      new InvalidDataError("take")
+    );
+  });
+
+  test("validateGetAllWatchesQueries throws error if skipQuery is undefined", () => {
+    expect(() => validateGetAllWatchesQueries(validTakeQuery)).toThrow(
+      new InvalidDataError("skip")
+    );
+  });
+
+  test("validateGetAllWatchesQueries throws error if skipQuery is not a string", () => {
+    expect(() => validateGetAllWatchesQueries(validTakeQuery, {})).toThrow(
+      new InvalidDataError("skip")
+    );
+  });
+
+  test("validateGetAllWatchesQueries throws error if skipQuery is too long", () => {
+    expect(() => validateGetAllWatchesQueries(validTakeQuery, "1234")).toThrow(
+      new InvalidDataError("skip")
+    );
+  });
+
+  test("validateGetAllWatchesQueries throws error if skipQuery cannot be casted to a number", () => {
+    expect(() => validateGetAllWatchesQueries(validTakeQuery, "[]")).toThrow(
+      new InvalidDataError("skip")
+    );
+  });
+
+  test("validateGetAllWatchesQueries throws error if casted skipQuery is negative", () => {
+    expect(() => validateGetAllWatchesQueries(validTakeQuery, "-2")).toThrow(
+      new InvalidDataError("skip")
+    );
+  });
+
+  test("validateGetAllWatchesQueries throws error if onlyMyWatchesQuery is undefined", () => {
+    expect(() =>
+      validateGetAllWatchesQueries(validTakeQuery, validSkipQuery)
+    ).toThrow(new InvalidDataError("onlyMyWatches"));
+  });
+
+  test("validateGetAllWatchesQueries throws error if onlyMyWatchesQuery is not a string", () => {
+    expect(() =>
+      validateGetAllWatchesQueries(validTakeQuery, validSkipQuery, 123)
+    ).toThrow(new InvalidDataError("onlyMyWatches"));
+  });
+
+  test("validateGetAllWatchesQueries throws error if onlyMyWatchesQuery is neither true or false", () => {
+    expect(() =>
+      validateGetAllWatchesQueries(validTakeQuery, validSkipQuery, "abc")
+    ).toThrow(new InvalidDataError("onlyMyWatches"));
+  });
+
+  test("validateGetAllWatchesQueries returns validated take under key take", () => {
+    const response = validateGetAllWatchesQueries(
+      validTakeQuery,
+      validSkipQuery,
+      validOnlyMyWatchesQuery
+    );
+
+    expect(response).toHaveProperty("take", 10);
+  });
+
+  test("validateGetAllWatchesQueries returns validated skip under key skip", () => {
+    const response = validateGetAllWatchesQueries(
+      validTakeQuery,
+      validSkipQuery,
+      validOnlyMyWatchesQuery
+    );
+
+    expect(response).toHaveProperty("skip", 2);
+  });
+
+  test("validateGetAllWatchesQueries returns casted onlyUserWatches if true passed under key onlyUserWatches", () => {
+    const response = validateGetAllWatchesQueries(
+      validTakeQuery,
+      validSkipQuery,
+      "true"
+    );
+
+    expect(response).toHaveProperty("onlyUserWatches", true);
+  });
+
+  test("validateGetAllWatchesQueries returns casted onlyUserWatches if false passed under key onlyUserWatches", () => {
+    const response = validateGetAllWatchesQueries(
+      validTakeQuery,
+      validSkipQuery,
+      "false"
+    );
+
+    expect(response).toHaveProperty("onlyUserWatches", false);
+  });
 });
 
 describe("Test validateCreateWatchBody", () => {
