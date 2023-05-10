@@ -22,6 +22,7 @@ model User {
   role     UserRole @default(USER)
 
   refreshtokens RefreshToken[]
+  watches       Watch[]
 
   createdAt DateTime @default(now()) @db.Timestamptz()
   updatedAt DateTime @updatedAt @db.Timestamptz()
@@ -31,6 +32,19 @@ model RefreshToken {
   id          String  @id @unique @default(uuid()) @db.Uuid
   hashedToken String
   isRevoked   Boolean @default(false)
+
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @db.Timestamptz()
+  updatedAt DateTime @updatedAt @db.Timestamptz()
+}
+
+model Watch {
+  id        String @id @unique @default(uuid()) @db.Uuid
+  name      String
+  brand     String
+  reference String @unique
 
   userId String @db.Uuid
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -8,7 +8,8 @@ import {
   deleteRefreshTokenById,
 } from "main/auth/dbServices";
 
-const userId = uuidV4();
+const userId = uuidV4(),
+  userIdForDeleteTokens = uuidV4();
 
 beforeAll(async () => {
   await prismaClient.user.create({
@@ -18,18 +19,28 @@ beforeAll(async () => {
       password: "potato",
     },
   });
+
+  await prismaClient.user.create({
+    data: {
+      id: userIdForDeleteTokens,
+      username: uuidV4(),
+      password: "potato",
+    },
+  });
 });
 
 afterAll(async () => {
   const deleteRefreshTokens = prismaClient.refreshToken.deleteMany();
 
-  const deleteUser = prismaClient.user.delete({
+  const deleteUsers = prismaClient.user.deleteMany({
     where: {
-      id: userId,
+      id: {
+        in: [userId, userIdForDeleteTokens],
+      },
     },
   });
 
-  await prismaClient.$transaction([deleteRefreshTokens, deleteUser]);
+  await prismaClient.$transaction([deleteRefreshTokens, deleteUsers]);
 });
 
 describe("Test createRefreshToken", () => {
@@ -48,18 +59,6 @@ describe("Test createRefreshToken", () => {
 });
 
 describe("Test deleteRefreshTokensByUserId", () => {
-  const userIdForDeleteTokens = uuidV4();
-
-  beforeAll(async () => {
-    await prismaClient.user.create({
-      data: {
-        id: userIdForDeleteTokens,
-        username: uuidV4(),
-        password: "potato",
-      },
-    });
-  });
-
   test("deleteRefreshTokensByUserId deletes refreshTokens of user with passed id", async () => {
     await prismaClient.refreshToken.createMany({
       data: [

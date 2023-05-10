@@ -15,19 +15,21 @@ const firstUsername = uuidV4(),
   thirdUsername = uuidV4();
 
 afterAll(async () => {
-  const deleteUsers_1 = prismaClient.user.delete({
+  const deleteFirstUser = prismaClient.user.delete({
     where: {
       id: firstUserId,
     },
   });
 
-  const deleteUsers_2 = prismaClient.user.delete({
+  const deleteSecondAndThirdUsers = prismaClient.user.deleteMany({
     where: {
-      username: secondUsername,
+      username: {
+        in: [secondUsername, thirdUsername],
+      },
     },
   });
 
-  await prismaClient.$transaction([deleteUsers_1, deleteUsers_2]);
+  await prismaClient.$transaction([deleteFirstUser, deleteSecondAndThirdUsers]);
 });
 
 describe("Test findUserByUsername", () => {

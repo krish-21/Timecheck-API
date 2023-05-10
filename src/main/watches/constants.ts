@@ -1,0 +1,3 @@
+export const NAME_MAXIMUM_LENGTH = 50;
+export const BRAND_MAXIMUM_LENGTH = 50;
+export const REFERENCE_MAXIMUM_LENGTH = 50;

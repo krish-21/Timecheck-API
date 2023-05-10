@@ -9,6 +9,7 @@ import { isAuthenticated } from "main/middleware/isAuthenticated";
 import { handleUnmatchedPaths } from "main/middleware/handleUnmatchedPaths";
 
 import { authRouter } from "main/auth/routes";
+import { watchRouter } from "main/watches/routes";
 
 export const app = express();
 
@@ -43,6 +44,8 @@ app.use("/auth", authRouter);
 
 // Auth Wall
 app.use(isAuthenticated);
+
+app.use("/watches", watchRouter);
 
 // Handle all other unmatched routes
 app.all("*", handleUnmatchedPaths);
