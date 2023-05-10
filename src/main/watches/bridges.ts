@@ -6,6 +6,7 @@ import type {
 import {
   validateGetAllWatchesQueries,
   validateCreateWatchBody,
+  validateUpdateWatchBody,
   transformWatch,
   transformWatches,
 } from "main/watches/utils";
@@ -13,6 +14,7 @@ import {
 import {
   getAllWatchesService,
   createWatchService,
+  updateWatchService,
 } from "main/watches/services";
 
 export const getAllWatchesBridge = async (
@@ -62,4 +64,29 @@ export const createWatchBridge = async (
   );
 
   return transformWatch(createdSource);
+};
+
+export const updateWatchBridge = async (
+  userId: string,
+  watchIdValue: string,
+  nameValue?: unknown,
+  brandValue?: unknown,
+  referenceValue?: unknown
+): Promise<WatchResponse> => {
+  const { watchId, name, brand, reference } = validateUpdateWatchBody(
+    watchIdValue,
+    nameValue,
+    brandValue,
+    referenceValue
+  );
+
+  const updatedSource = await updateWatchService(
+    userId,
+    watchId,
+    name,
+    brand,
+    reference
+  );
+
+  return transformWatch(updatedSource);
 };

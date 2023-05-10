@@ -1,6 +1,8 @@
 import type { Watch } from "@prisma/client";
+
 import { InvalidDataError } from "main/utils/errors/InvalidDataError/InvalidDataError";
 
+import { UUID_V4_LENGTH } from "main/utils/constants/uuid";
 import {
   NAME_MAXIMUM_LENGTH,
   BRAND_MAXIMUM_LENGTH,
@@ -10,12 +12,15 @@ import {
 import {
   validateGetAllWatchesQueries,
   validateCreateWatchBody,
+  validateUpdateWatchBody,
   transformWatch,
 } from "main/watches/utils";
 
 const validTakeQuery = "10";
 const validSkipQuery = "2";
 const validOnlyMyWatchesQuery = "true";
+
+const mockUUID = "a".repeat(UUID_V4_LENGTH);
 
 const validName = "margharita";
 const validBrand = "marinara";
@@ -289,6 +294,168 @@ describe("Test validateCreateWatchBody", () => {
       name: validName,
       brand: validBrand,
       reference: "ghi",
+    });
+  });
+});
+
+describe("Test validateUpdateWatchBody", () => {
+  test("validateUpdateWatchBody throws error if watchIdValue is not 36 characters long", () => {
+    expect(() => validateUpdateWatchBody("")).toThrow(
+      new InvalidDataError("watchId")
+    );
+  });
+
+  test("validateUpdateWatchBody throws error if no data is passed", () => {
+    expect(() => validateUpdateWatchBody(mockUUID)).toThrow(
+      new InvalidDataError("data")
+    );
+  });
+
+  test("validateUpdateWatchBody throws error if nameValue exists and is not a string", () => {
+    expect(() => validateUpdateWatchBody(mockUUID, [""])).toThrow(
+      new InvalidDataError("name")
+    );
+  });
+
+  test("validateUpdateWatchBody throws error if nameValue exists and is empty", () => {
+    expect(() => validateUpdateWatchBody(mockUUID, "")).toThrow(
+      new InvalidDataError("name")
+    );
+  });
+
+  test("validateUpdateWatchBody throws error if brandValue exists and is not a string", () => {
+    expect(() => validateUpdateWatchBody(mockUUID, undefined, {})).toThrow(
+      new InvalidDataError("brand")
+    );
+  });
+
+  test("validateUpdateWatchBody throws error if brandValue exists and is empty", () => {
+    expect(() => validateUpdateWatchBody(mockUUID, undefined, "")).toThrow(
+      new InvalidDataError("brand")
+    );
+  });
+
+  test("validateUpdateWatchBody throws error if referenceValue exists and is not a string", () => {
+    expect(() =>
+      validateUpdateWatchBody(mockUUID, undefined, undefined, [])
+    ).toThrow(new InvalidDataError("reference"));
+  });
+
+  test("validateUpdateWatchBody throws error if referenceValue exists and is empty", () => {
+    expect(() =>
+      validateUpdateWatchBody(mockUUID, undefined, undefined, "")
+    ).toThrow(new InvalidDataError("reference"));
+  });
+
+  test("validateUpdateWatchBody returns validated values", () => {
+    const response = validateUpdateWatchBody(
+      mockUUID,
+      validName,
+      validName,
+      validReference
+    );
+
+    expect(response).toEqual({
+      watchId: mockUUID,
+      name: validName,
+      brand: validName,
+      reference: validReference,
+    });
+  });
+
+  test("validateUpdateWatchBody returns validated values (name substring)", () => {
+    const response = validateUpdateWatchBody(
+      mockUUID,
+      "a".repeat(NAME_MAXIMUM_LENGTH + 10),
+      validBrand,
+      validReference
+    );
+
+    expect(response).toEqual({
+      watchId: mockUUID,
+      name: "a".repeat(NAME_MAXIMUM_LENGTH),
+      brand: validBrand,
+      reference: validReference,
+    });
+  });
+
+  test("validateUpdateWatchBody returns validated values (name trimmed)", () => {
+    const response = validateUpdateWatchBody(
+      mockUUID,
+      " abc ",
+      validBrand,
+      validReference
+    );
+
+    expect(response).toEqual({
+      watchId: mockUUID,
+      name: "abc",
+      brand: validBrand,
+      reference: validReference,
+    });
+  });
+
+  test("validateUpdateWatchBody returns validated values (brand substring)", () => {
+    const response = validateUpdateWatchBody(
+      mockUUID,
+      validName,
+      "a".repeat(BRAND_MAXIMUM_LENGTH + 10),
+      validReference
+    );
+
+    expect(response).toEqual({
+      watchId: mockUUID,
+      name: validName,
+      brand: "a".repeat(BRAND_MAXIMUM_LENGTH),
+      reference: validReference,
+    });
+  });
+
+  test("validateUpdateWatchBody returns validated values (brand trimmed)", () => {
+    const response = validateUpdateWatchBody(
+      mockUUID,
+      validName,
+      " abc ",
+      validReference
+    );
+
+    expect(response).toEqual({
+      watchId: mockUUID,
+      name: validName,
+      brand: "abc",
+      reference: validReference,
+    });
+  });
+
+  test("validateUpdateWatchBody returns validated values (reference substring)", () => {
+    const response = validateUpdateWatchBody(
+      mockUUID,
+      validName,
+      validBrand,
+      "a".repeat(REFERENCE_MAXIMUM_LENGTH + 10)
+    );
+
+    expect(response).toEqual({
+      watchId: mockUUID,
+      name: validName,
+      brand: validBrand,
+      reference: "a".repeat(REFERENCE_MAXIMUM_LENGTH),
+    });
+  });
+
+  test("validateUpdateWatchBody returns validated values (brand trimmed)", () => {
+    const response = validateUpdateWatchBody(
+      mockUUID,
+      validName,
+      validBrand,
+      " abc "
+    );
+
+    expect(response).toEqual({
+      watchId: mockUUID,
+      name: validName,
+      brand: validBrand,
+      reference: "abc",
     });
   });
 });

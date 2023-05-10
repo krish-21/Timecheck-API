@@ -5,10 +5,16 @@ import {
   GetAllWatchesQueryParams,
   GetAllWatchesResponse,
   CreateWatchBody,
+  UpdateWatchRouteParams,
+  UpdateWatchBody,
   WatchResponse,
 } from "main/watches/interfaces";
 
-import { getAllWatchesBridge, createWatchBridge } from "main/watches/bridges";
+import {
+  getAllWatchesBridge,
+  createWatchBridge,
+  updateWatchBridge,
+} from "main/watches/bridges";
 
 export const getAllWatchesView = async (
   req: Request<object, object, object, GetAllWatchesQueryParams>,
@@ -36,4 +42,19 @@ export const createWatchView = async (
   );
 
   res.status(StatusCodes.CREATED).json(createdWatch);
+};
+
+export const updateWatchView = async (
+  req: Request<UpdateWatchRouteParams, object, UpdateWatchBody, object>,
+  res: Response<WatchResponse>
+): Promise<void> => {
+  const updatedWatch = await updateWatchBridge(
+    req.context.customJWTPayload.userId,
+    req.params.watchId,
+    req.body.name,
+    req.body.brand,
+    req.body.reference
+  );
+
+  res.status(StatusCodes.OK).json(updatedWatch);
 };
