@@ -164,6 +164,18 @@ export const validateUpdateWatchBody = (
   };
 };
 
+export const validateDeleteWatchValues = (
+  watchIdValue: string
+): { watchId: string } => {
+  if (watchIdValue.length !== UUID_V4_LENGTH) {
+    throw new InvalidDataError("watchId");
+  }
+
+  return {
+    watchId: watchIdValue,
+  };
+};
+
 export const transformWatch = (watch: Watch): WatchResponse => {
   return {
     id: watch.id,

@@ -7,6 +7,7 @@ import {
   CreateWatchBody,
   UpdateWatchRouteParams,
   UpdateWatchBody,
+  DeleteWatchRouteParams,
   WatchResponse,
 } from "main/watches/interfaces";
 
@@ -14,6 +15,7 @@ import {
   getAllWatchesBridge,
   createWatchBridge,
   updateWatchBridge,
+  deleteWatchBridge,
 } from "main/watches/bridges";
 
 export const getAllWatchesView = async (
@@ -57,4 +59,16 @@ export const updateWatchView = async (
   );
 
   res.status(StatusCodes.OK).json(updatedWatch);
+};
+
+export const deleteWatchView = async (
+  req: Request<DeleteWatchRouteParams, object, object, object>,
+  res: Response<WatchResponse>
+): Promise<void> => {
+  const deletedWatch = await deleteWatchBridge(
+    req.context.customJWTPayload.userId,
+    req.params.watchId
+  );
+
+  res.status(StatusCodes.OK).json(deletedWatch);
 };

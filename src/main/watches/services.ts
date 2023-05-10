@@ -10,6 +10,7 @@ import {
   countAllWatches,
   createWatchForUser,
   updateWatchById,
+  deleteWatchById,
 } from "main/watches/dbServices";
 
 export const getAllWatchesService = async (
@@ -78,4 +79,17 @@ export const updateWatchService = async (
   }
 
   return updateWatchById(watchId, name, brand, reference);
+};
+
+export const deleteWatchService = async (
+  userId: string,
+  watchId: string
+): Promise<Watch> => {
+  const retrievedWatch = await findWatchById(watchId);
+
+  if (retrievedWatch === null || retrievedWatch.userId !== userId) {
+    throw new InvalidDataError("watchId");
+  }
+
+  return deleteWatchById(watchId);
 };

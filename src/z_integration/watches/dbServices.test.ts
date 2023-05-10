@@ -8,6 +8,7 @@ import {
   findAllWatches,
   countAllWatches,
   updateWatchById,
+  deleteWatchById,
 } from "main/watches/dbServices";
 
 const userId = uuidV4(),
@@ -262,5 +263,27 @@ describe("Test updateWatchById", () => {
     });
 
     expect(updatedFlashCard).toHaveProperty("reference", "penne arrabiatta");
+  });
+});
+
+describe("Test deleteWatchById", () => {
+  test("deleteWatchById deletes watch with passed id", async () => {
+    const watchToDeleteId = uuidV4();
+    await prismaClient.watch.create({
+      data: {
+        id: watchToDeleteId,
+        name: "dummy name",
+        brand: "dummy brand",
+        reference: "dummmy reference",
+        userId: secondUserId,
+      },
+    });
+
+    await deleteWatchById(watchToDeleteId);
+
+    const watch = await prismaClient.watch.findUnique({
+      where: { id: watchToDeleteId },
+    });
+    expect(watch).toBeNull();
   });
 });

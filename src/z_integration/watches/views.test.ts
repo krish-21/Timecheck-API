@@ -7,12 +7,14 @@ import {
   getAllWatchesBridge,
   createWatchBridge,
   updateWatchBridge,
+  deleteWatchBridge,
 } from "main/watches/bridges";
 
 jest.mock("main/watches/bridges", () => ({
   getAllWatchesBridge: jest.fn(),
   createWatchBridge: jest.fn(),
   updateWatchBridge: jest.fn(),
+  deleteWatchBridge: jest.fn(),
 }));
 
 jest.mock("main/middleware/isAuthenticated", () => ({
@@ -160,8 +162,8 @@ describe("Test createWatchView", () => {
   });
 });
 
-describe("Test updateFlashCardView", () => {
-  test("updateFlashCardView delegates userId from request context & flashCardId from route to updateWatchBridge", async () => {
+describe("Test updateWatchView", () => {
+  test("updateWatchView delegates userId from request context & watcheId from route to updateWatchBridge", async () => {
     await request(app).patch("/watches/123");
 
     expect(updateWatchBridge).toHaveBeenCalledWith(
@@ -173,7 +175,7 @@ describe("Test updateFlashCardView", () => {
     );
   });
 
-  test("updateFlashCardView delegates name from body to updateWatchBridge", async () => {
+  test("updateWatchView delegates name from body to updateWatchBridge", async () => {
     await request(app).patch("/watches/123").send({ name: "potato" });
 
     expect(updateWatchBridge).toHaveBeenCalledWith(
@@ -185,7 +187,7 @@ describe("Test updateFlashCardView", () => {
     );
   });
 
-  test("updateFlashCardView delegates brand from body to updateWatchBridge", async () => {
+  test("updateWatchView delegates brand from body to updateWatchBridge", async () => {
     await request(app).patch("/watches/123").send({ brand: "tomato" });
 
     expect(updateWatchBridge).toHaveBeenCalledWith(
@@ -197,7 +199,7 @@ describe("Test updateFlashCardView", () => {
     );
   });
 
-  test("updateFlashCardView delegates reference from body to updateWatchBridge", async () => {
+  test("updateWatchView delegates reference from body to updateWatchBridge", async () => {
     await request(app).patch("/watches/123").send({ reference: "onion" });
 
     expect(updateWatchBridge).toHaveBeenCalledWith(
@@ -209,19 +211,47 @@ describe("Test updateFlashCardView", () => {
     );
   });
 
-  test("updateFlashCardView returns 200 OK status code", async () => {
+  test("updateWatchView returns 200 OK status code", async () => {
     const response = await request(app).patch("/watches/123");
 
     expect(response.status).toEqual(StatusCodes.OK);
   });
 
-  test("updateFlashCardView returns response from updateWatchBridge", async () => {
+  test("updateWatchView returns response from updateWatchBridge", async () => {
     (updateWatchBridge as jest.Mock).mockImplementationOnce(() => ({
       random: "data",
       hello: "world",
     }));
 
     const response = await request(app).patch("/watches/123");
+
+    expect(response.body).toEqual({
+      random: "data",
+      hello: "world",
+    });
+  });
+});
+
+describe("Test deleteWatchView", () => {
+  test("deleteWatchView delegates userId from request context & courseId from route to deleteWatchBridge", async () => {
+    await request(app).delete("/watches/123");
+
+    expect(deleteWatchBridge).toHaveBeenCalledWith("fakeUserId", "123");
+  });
+
+  test("deleteWatchView returns 200 OK status code", async () => {
+    const response = await request(app).delete("/watches/123");
+
+    expect(response.status).toEqual(StatusCodes.OK);
+  });
+
+  test("deleteWatchView returns response from deleteWatchBridge", async () => {
+    (deleteWatchBridge as jest.Mock).mockImplementationOnce(() => ({
+      random: "data",
+      hello: "world",
+    }));
+
+    const response = await request(app).delete("/watches/123");
 
     expect(response.body).toEqual({
       random: "data",

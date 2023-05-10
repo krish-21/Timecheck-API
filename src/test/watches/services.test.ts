@@ -8,12 +8,14 @@ import {
   countAllWatches,
   createWatchForUser,
   updateWatchById,
+  deleteWatchById,
 } from "main/watches/dbServices";
 
 import {
   getAllWatchesService,
   createWatchService,
   updateWatchService,
+  deleteWatchService,
 } from "main/watches/services";
 
 jest.mock("main/watches/dbServices", () => ({
@@ -23,6 +25,7 @@ jest.mock("main/watches/dbServices", () => ({
   countAllWatches: jest.fn(() => 0),
   createWatchForUser: jest.fn(),
   updateWatchById: jest.fn(),
+  deleteWatchById: jest.fn(),
 }));
 
 afterEach(() => {
@@ -278,6 +281,52 @@ describe("Test updateWatchService", () => {
     }));
 
     const response = await updateWatchService("", "", "_");
+
+    expect(response).toEqual({
+      chilly: "chicken",
+      gobi: 65,
+    });
+  });
+});
+
+describe("Test deleteWatchService", () => {
+  test("deleteWatchService delegates watchId to findWatchById", async () => {
+    await deleteWatchService("", "potato");
+
+    expect(findWatchById).toHaveBeenCalledWith("potato");
+  });
+
+  test("deleteWatchService throws error if findWatchById returns null", async () => {
+    (findWatchById as jest.Mock).mockImplementationOnce(() => null);
+
+    await expect(deleteWatchService("", "")).rejects.toThrow(
+      new InvalidDataError("watchId")
+    );
+  });
+
+  test("deleteWatchService throws error if watch returned from findWatchById does not belong to user", async () => {
+    (findWatchById as jest.Mock).mockImplementationOnce(() => ({
+      userId: "potato",
+    }));
+
+    await expect(deleteWatchService("tomato", "")).rejects.toThrow(
+      new InvalidDataError("watchId")
+    );
+  });
+
+  test("deleteWatchService delegates watchId to deleteWatchById", async () => {
+    await deleteWatchService("", "onion");
+
+    expect(deleteWatchById).toHaveBeenCalledWith("onion");
+  });
+
+  test("deleteWatchService returns response from deleteWatchById", async () => {
+    (deleteWatchById as jest.Mock).mockImplementationOnce(() => ({
+      chilly: "chicken",
+      gobi: 65,
+    }));
+
+    const response = await deleteWatchService("", "");
 
     expect(response).toEqual({
       chilly: "chicken",

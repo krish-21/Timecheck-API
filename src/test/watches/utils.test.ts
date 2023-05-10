@@ -13,6 +13,7 @@ import {
   validateGetAllWatchesQueries,
   validateCreateWatchBody,
   validateUpdateWatchBody,
+  validateDeleteWatchValues,
   transformWatch,
 } from "main/watches/utils";
 
@@ -456,6 +457,22 @@ describe("Test validateUpdateWatchBody", () => {
       name: validName,
       brand: validBrand,
       reference: "abc",
+    });
+  });
+});
+
+describe("Test validateDeleteWatchValues", () => {
+  test("validateDeleteWatchValues throws error if watchIdValue not 36 characters long", () => {
+    expect(() => validateDeleteWatchValues("abcd")).toThrow(
+      new InvalidDataError("watchId")
+    );
+  });
+
+  test("validateDeleteWatchValues returns validated values", () => {
+    const response = validateDeleteWatchValues(mockUUID);
+
+    expect(response).toEqual({
+      watchId: mockUUID,
     });
   });
 });

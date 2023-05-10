@@ -82,3 +82,11 @@ export const updateWatchById = async (
     },
   });
 };
+
+export const deleteWatchById = async (id: string): Promise<Watch> => {
+  return prismaClient.watch.delete({
+    where: {
+      id,
+    },
+  });
+};
