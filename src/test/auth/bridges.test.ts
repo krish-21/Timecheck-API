@@ -7,12 +7,14 @@ import {
   generateAndSaveTokensService,
   loginUserService,
   refreshUserTokensService,
+  logoutUserService,
 } from "main/auth/services";
 
 import {
   loginUserBridge,
   registerUserBridge,
   refreshUserTokensBridge,
+  logoutUserBridge,
 } from "main/auth/bridges";
 
 jest.mock("main/auth/services", () => ({
@@ -20,6 +22,7 @@ jest.mock("main/auth/services", () => ({
   loginUserService: jest.fn(() => ({})),
   refreshUserTokensService: jest.fn(() => ({})),
   generateAndSaveTokensService: jest.fn(() => ({})),
+  logoutUserService: jest.fn(),
 }));
 
 afterEach(() => {
@@ -245,5 +248,23 @@ describe("Test refreshUserTokensBridge", () => {
     const response = await refreshUserTokensBridge("");
 
     expect(response).toEqual(mockTokenResonse);
+  });
+});
+
+describe("Test logoutUserBridge", () => {
+  test("logoutUserBridge delegates userId to logoutUserService", async () => {
+    await logoutUserBridge("potato");
+
+    expect(logoutUserService).toHaveBeenCalledWith("potato");
+  });
+
+  test("logoutUserBridge returns response from logoutUserService", async () => {
+    (logoutUserService as jest.Mock).mockImplementationOnce(
+      () => "PotatoTomato"
+    );
+
+    const response = await logoutUserBridge("potato");
+
+    expect(response).toEqual("PotatoTomato");
   });
 });
