@@ -6,6 +6,7 @@ import { appConfig } from "main/utils/environment/AppConfig";
 
 import { handleError } from "main/middleware/handleError";
 import { isAuthenticated } from "main/middleware/isAuthenticated";
+import { handleUnmatchedPaths } from "main/middleware/handleUnmatchedPaths";
 
 import { authRouter } from "main/auth/routes";
 
@@ -42,6 +43,9 @@ app.use("/auth", authRouter);
 
 // Auth Wall
 app.use(isAuthenticated);
+
+// Handle all other unmatched routes
+app.all("*", handleUnmatchedPaths);
 
 // Error handling Middleware
 app.use(handleError);
