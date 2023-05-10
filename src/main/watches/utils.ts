@@ -3,6 +3,7 @@ import type { WatchResponse } from "main/watches/interfaces";
 
 import { InvalidDataError } from "main/utils/errors/InvalidDataError/InvalidDataError";
 
+import { UUID_V4_LENGTH } from "main/utils/constants/uuid";
 import { MAX_QUERY_LENGTH } from "main/utils/constants/queries";
 import {
   NAME_MAXIMUM_LENGTH,
@@ -91,6 +92,72 @@ export const validateCreateWatchBody = (
   }
 
   return {
+    name,
+    brand,
+    reference,
+  };
+};
+
+export const validateUpdateWatchBody = (
+  watchIdValue: string,
+  nameValue?: unknown,
+  brandValue?: unknown,
+  referenceValue?: unknown
+): {
+  watchId: string;
+  name: string | undefined;
+  brand: string | undefined;
+  reference: string | undefined;
+} => {
+  if (watchIdValue.length !== UUID_V4_LENGTH) {
+    throw new InvalidDataError("watchId");
+  }
+
+  if (
+    nameValue === undefined &&
+    brandValue === undefined &&
+    referenceValue === undefined
+  ) {
+    throw new InvalidDataError("data");
+  }
+
+  let name: string | undefined;
+
+  if (nameValue !== undefined) {
+    if (typeof nameValue !== "string" || nameValue.length === 0) {
+      throw new InvalidDataError("name");
+    } else if (nameValue.length > NAME_MAXIMUM_LENGTH) {
+      name = nameValue.substring(0, NAME_MAXIMUM_LENGTH);
+    } else {
+      name = nameValue.trim();
+    }
+  }
+
+  let brand: string | undefined;
+
+  if (brandValue !== undefined) {
+    if (typeof brandValue !== "string" || brandValue.length === 0) {
+      throw new InvalidDataError("brand");
+    } else if (brandValue.length > BRAND_MAXIMUM_LENGTH) {
+      brand = brandValue.substring(0, BRAND_MAXIMUM_LENGTH);
+    } else {
+      brand = brandValue.trim();
+    }
+  }
+  let reference: string | undefined;
+
+  if (referenceValue !== undefined) {
+    if (typeof referenceValue !== "string" || referenceValue.length === 0) {
+      throw new InvalidDataError("reference");
+    } else if (referenceValue.length > REFERENCE_MAXIMUM_LENGTH) {
+      reference = referenceValue.substring(0, REFERENCE_MAXIMUM_LENGTH);
+    } else {
+      reference = referenceValue.trim();
+    }
+  }
+
+  return {
+    watchId: watchIdValue,
     name,
     brand,
     reference,

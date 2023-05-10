@@ -2,6 +2,14 @@ import type { Prisma, Watch } from "@prisma/client";
 
 import { prismaClient } from "main/utils/db/prismaClient";
 
+export const findWatchById = async (id: string): Promise<Watch | null> => {
+  return prismaClient.watch.findUnique({
+    where: {
+      id,
+    },
+  });
+};
+
 export const findWatchByReference = async (
   reference: string
 ): Promise<Watch | null> => {
@@ -53,6 +61,24 @@ export const createWatchForUser = async (
       brand,
       reference,
       userId,
+    },
+  });
+};
+
+export const updateWatchById = async (
+  id: string,
+  name?: string,
+  brand?: string,
+  reference?: string
+): Promise<Watch> => {
+  return prismaClient.watch.update({
+    where: {
+      id,
+    },
+    data: {
+      ...(name === undefined ? {} : { name }),
+      ...(brand === undefined ? {} : { brand }),
+      ...(reference === undefined ? {} : { reference }),
     },
   });
 };

@@ -26,3 +26,13 @@ export interface CreateWatchBody {
   brand: unknown;
   reference: unknown;
 }
+
+export interface UpdateWatchRouteParams {
+  watchId: string;
+}
+
+export interface UpdateWatchBody {
+  name: unknown;
+  brand: unknown;
+  reference: unknown;
+}

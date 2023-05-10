@@ -1,6 +1,7 @@
 import {
   validateGetAllWatchesQueries,
   validateCreateWatchBody,
+  validateUpdateWatchBody,
   transformWatch,
   transformWatches,
 } from "main/watches/utils";
@@ -8,13 +9,19 @@ import {
 import {
   getAllWatchesService,
   createWatchService,
+  updateWatchService,
 } from "main/watches/services";
 
-import { getAllWatchesBridge, createWatchBridge } from "main/watches/bridges";
+import {
+  getAllWatchesBridge,
+  createWatchBridge,
+  updateWatchBridge,
+} from "main/watches/bridges";
 
 jest.mock("main/watches/utils", () => ({
   validateGetAllWatchesQueries: jest.fn(() => ({})),
   validateCreateWatchBody: jest.fn(() => ({})),
+  validateUpdateWatchBody: jest.fn(() => ({})),
   transformWatch: jest.fn(),
   transformWatches: jest.fn(),
 }));
@@ -22,6 +29,7 @@ jest.mock("main/watches/utils", () => ({
 jest.mock("main/watches/services", () => ({
   getAllWatchesService: jest.fn(() => ({})),
   createWatchService: jest.fn(),
+  updateWatchService: jest.fn(),
 }));
 
 afterEach(() => {
@@ -290,6 +298,156 @@ describe("Test createWatchBridge", () => {
     }));
 
     const response = await createWatchBridge("");
+
+    expect(response).toEqual({
+      random: "data",
+      irrelavant: "info",
+    });
+  });
+});
+
+describe("Test updateWatchBridge", () => {
+  test("updateWatchBridge delegates watchIdValue to validateUpdateWatchBody", async () => {
+    await updateWatchBridge("", "celery");
+
+    expect(validateUpdateWatchBody).toHaveBeenCalledWith(
+      "celery",
+      undefined,
+      undefined,
+      undefined
+    );
+  });
+
+  test("updateWatchBridge delegates nameValue to validateUpdateWatchBody", async () => {
+    await updateWatchBridge("", "", "potato");
+
+    expect(validateUpdateWatchBody).toHaveBeenCalledWith(
+      "",
+      "potato",
+      undefined,
+      undefined
+    );
+  });
+
+  test("updateWatchBridge delegates brandValue to validateUpdateWatchBody", async () => {
+    await updateWatchBridge("", "", undefined, "tomato");
+
+    expect(validateUpdateWatchBody).toHaveBeenCalledWith(
+      "",
+      undefined,
+      "tomato",
+      undefined
+    );
+  });
+
+  test("updateWatchBridge delegates referenceValue to validateUpdateWatchBody", async () => {
+    await updateWatchBridge("", "", undefined, undefined, "onion");
+
+    expect(validateUpdateWatchBody).toHaveBeenCalledWith(
+      "",
+      undefined,
+      undefined,
+      "onion"
+    );
+  });
+
+  test("updateWatchBridge delegates userId to updateWatchService", async () => {
+    await updateWatchBridge("paneer", "");
+
+    expect(updateWatchService).toHaveBeenCalledWith(
+      "paneer",
+      undefined,
+      undefined,
+      undefined,
+      undefined
+    );
+  });
+
+  test("updateWatchBridge delegates validated watchId from validateUpdateWatchBody to updateWatchService", async () => {
+    (validateUpdateWatchBody as jest.Mock).mockImplementationOnce(() => ({
+      watchId: "potato",
+    }));
+
+    await updateWatchBridge("", "");
+
+    expect(updateWatchService).toHaveBeenCalledWith(
+      "",
+      "potato",
+      undefined,
+      undefined,
+      undefined
+    );
+  });
+
+  test("updateWatchBridge delegates validated name from validateUpdateWatchBody to updateWatchService", async () => {
+    (validateUpdateWatchBody as jest.Mock).mockImplementationOnce(() => ({
+      name: "potato",
+    }));
+
+    await updateWatchBridge("", "");
+
+    expect(updateWatchService).toHaveBeenCalledWith(
+      "",
+      undefined,
+      "potato",
+      undefined,
+      undefined
+    );
+  });
+
+  test("updateWatchBridge delegates validated brand from validateUpdateWatchBody to updateWatchService", async () => {
+    (validateUpdateWatchBody as jest.Mock).mockImplementationOnce(() => ({
+      brand: "tomato",
+    }));
+
+    await updateWatchBridge("", "");
+
+    expect(updateWatchService).toHaveBeenCalledWith(
+      "",
+      undefined,
+      undefined,
+      "tomato",
+      undefined
+    );
+  });
+
+  test("updateWatchBridge delegates validated reference from validateUpdateWatchBody to updateWatchService", async () => {
+    (validateUpdateWatchBody as jest.Mock).mockImplementationOnce(() => ({
+      reference: "onion",
+    }));
+
+    await updateWatchBridge("", "");
+
+    expect(updateWatchService).toHaveBeenCalledWith(
+      "",
+      undefined,
+      undefined,
+      undefined,
+      "onion"
+    );
+  });
+
+  test("updateWatchBridge delegates updated watch to transformWatch", async () => {
+    (updateWatchService as jest.Mock).mockImplementationOnce(() => ({
+      random: "data",
+      irrelavant: "info",
+    }));
+
+    await updateWatchBridge("", "");
+
+    expect(transformWatch).toHaveBeenCalledWith({
+      random: "data",
+      irrelavant: "info",
+    });
+  });
+
+  test("updateWatchBridge returns response from transformWatch", async () => {
+    (transformWatch as jest.Mock).mockImplementationOnce(() => ({
+      random: "data",
+      irrelavant: "info",
+    }));
+
+    const response = await updateWatchBridge("", "");
 
     expect(response).toEqual({
       random: "data",

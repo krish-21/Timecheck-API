@@ -2,10 +2,12 @@ import { v4 as uuidV4 } from "uuid";
 import { prismaClient } from "main/utils/db/prismaClient";
 
 import {
+  findWatchById,
   findWatchByReference,
   createWatchForUser,
   findAllWatches,
   countAllWatches,
+  updateWatchById,
 } from "main/watches/dbServices";
 
 const userId = uuidV4(),
@@ -103,6 +105,16 @@ afterAll(async () => {
   });
 
   await prismaClient.$transaction([deleteWatches, deleteUsers]);
+});
+
+describe("Test findWatchById", () => {
+  test("findWatchById finds watch by passed reference", async () => {
+    const foundWatch = await findWatchById(firstWatchId);
+
+    expect(foundWatch).toHaveProperty("id", firstWatchId);
+    expect(foundWatch).toHaveProperty("reference", firstWatchReference);
+    expect(foundWatch).toHaveProperty("userId", userId);
+  });
 });
 
 describe("Test findWatchByReference", () => {
@@ -206,5 +218,49 @@ describe("Test createWatchForUser", () => {
     expect(foundWatch).toHaveProperty("brand", "tomato");
     expect(foundWatch).toHaveProperty("reference", reference);
     expect(foundWatch).toHaveProperty("userId", secondUserId);
+  });
+});
+
+describe("Test updateWatchById", () => {
+  test("updateWatchById updates question of watch with passed question", async () => {
+    const newName = "insalata salad";
+
+    await updateWatchById(secondWatchId, newName);
+
+    const updatedFlashCard = await prismaClient.watch.findUniqueOrThrow({
+      where: {
+        id: secondWatchId,
+      },
+    });
+
+    expect(updatedFlashCard).toHaveProperty("name", "insalata salad");
+  });
+
+  test("updateWatchById updates brand of watch with passed brand", async () => {
+    const newBrand = "greek salad";
+
+    await updateWatchById(secondWatchId, undefined, newBrand);
+
+    const updatedFlashCard = await prismaClient.watch.findUniqueOrThrow({
+      where: {
+        id: secondWatchId,
+      },
+    });
+
+    expect(updatedFlashCard).toHaveProperty("brand", "greek salad");
+  });
+
+  test("updateWatchById updates reference of watch with passed reference", async () => {
+    const reference = "penne arrabiatta";
+
+    await updateWatchById(secondWatchId, undefined, undefined, reference);
+
+    const updatedFlashCard = await prismaClient.watch.findUniqueOrThrow({
+      where: {
+        id: secondWatchId,
+      },
+    });
+
+    expect(updatedFlashCard).toHaveProperty("reference", "penne arrabiatta");
   });
 });
